@@ -3,8 +3,8 @@
 
 auto main() -> int {
 
-  // 测试写文件时哈希
-  // auto fb = FileBlob{"./fileblob_text_out_2K", 1024 * 2};
+  // // 测试写文件时哈希
+  // auto fb = FileBlob{"./fileblob_text_out_2K", 1024 * 2, true};
   // char data[1024];
   // for (auto i = 0; i < 2; ++i) {
   //   fb.write(data);
@@ -13,7 +13,7 @@ auto main() -> int {
   // std::cout << fb.file_hash() << "\n";
 
   // 测试读文件时哈希
-  // auto fb = FileBlob{"./fileblob_test_1K"};
+  // auto fb = FileBlob{"./fileblob_test_1K", true};
   // std::cout << fb.file_hash() << "\n";
   // fb.read();
   // std::cout << fb.trunk_hash() << "\n";

@@ -5,60 +5,69 @@
 #include <cryptopp/md5.h>
 #include <cstdint>
 #include <fstream>
+#include <map>
 #include <optional>
+#include <set>
 
-// 管理上传下载的文件对象
-// 非多线程安全
-// 读写操作从trunk0开始，每次读写递增
+// 处理文件的读取和写入操作，同时支持对文件内容的哈希计算。
+// 根据构造函数的不同，哈希计算可以在文件读取时或写入时进行。
 class FileBlob {
+private:
+  enum HashState { NO_HASH, HASH_ON_WRITE, HASH_ON_READ };
+
 public:
   // 读文件构造函数，此后读操作都会计算哈希
   // 读文件时，构造时需要完整计算一次文件哈希
-  FileBlob(const std::string &path);
+  FileBlob(const std::string &path, bool enable_hash);
 
   // 写文件构造函数，此后写操作都会计算sha
   // 写文件时，文件完整哈希写完之后才能得到
-  FileBlob(const std::string &path, uint64_t file_size);
+  FileBlob(const std::string &path, uint64_t file_size, bool enable_hash);
 
   ~FileBlob() = default;
 
 public:
-  auto read() -> std::optional<std::string>;
+  auto path() -> const std::string &;
 
-  auto write(const std::string &data) -> bool;
+  auto read(uint64_t idx) -> std::optional<std::string>;
 
-  auto id() noexcept -> uint64_t;
+  auto write(const std::string &data, uint64_t idx) -> bool;
 
-  auto trunk_count() noexcept -> uint64_t;
+  auto id() -> uint64_t;
 
-  auto trunk_size(uint64_t idx) noexcept -> uint64_t;
+  auto trunk_count() -> uint64_t;
 
-  auto cur_trunk() noexcept -> uint64_t;
+  auto trunk_size(uint64_t idx) -> uint64_t;
 
-  auto set_cur_trunk(uint64_t idx) noexcept -> void;
+  auto valid() -> bool;
 
-  auto valid() noexcept -> bool;
+  // 如果是读文件，则构造时完整计算一次哈希
+  // 如果是写文件，则调用 file_hash 再计算哈希
+  auto file_hash() -> const std::string &;
 
-  // 整个文件hash
-  auto file_hash() -> std::string;
+  auto trunk_hash(uint64_t idx) -> const std::string &;
 
-  // 上个文件块的hash
-  auto trunk_hash() -> std::string;
+  auto unused_trunks() -> const std::set<uint64_t> &;
+
+  auto set_trunk_used(uint64_t idx) -> void;
+
+private:
+  auto init_unused_trunks() -> void;
 
 private:
   uint64_t id_;
   uint64_t trunk_count_;
   uint64_t last_trunk_size_; // 最后一个文件块的大小
-  uint64_t cur_trunk_{0};
   std::fstream fs_;
   std::string path_;
 
-  bool hash_on_read_; // true,读时计算hash; false，写时计算hash
-  std::string file_hash_;
-  std::string trunk_hash_;
-  CryptoPP::Weak1::MD5 write_hash_context_; // 写文件时需要的上下文
+  HashState hash_state_;
+  std::string file_hash_;                       // 整个文件的hash
+  std::map<uint64_t, std::string> trunks_hash_; // 保存各个块的hash
+  std::set<uint64_t> unused_trunks_;            // 未被使用的块集合
+  CryptoPP::Weak1::MD5 hash_context_; // 写文件时需要的上下文
 
 private:
-  inline static constexpr uint64_t TRUNK_SIZE = 1024; // 每个文件块大小
   inline static uint64_t NEXT_ID = 0;
+  inline static constexpr uint64_t TRUNK_SIZE = 1024 * 1024; // 每个文件块大小
 };
