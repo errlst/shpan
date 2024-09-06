@@ -16,12 +16,10 @@ private:
   enum HashState { NO_HASH, HASH_ON_WRITE, HASH_ON_READ };
 
 public:
-  // 读文件构造函数，此后读操作都会计算哈希
-  // 读文件时，构造时需要完整计算一次文件哈希
+  // 读文件构造函数
   FileBlob(const std::string &path, bool enable_hash);
 
-  // 写文件构造函数，此后写操作都会计算sha
-  // 写文件时，文件完整哈希写完之后才能得到
+  // 写文件构造函数
   FileBlob(const std::string &path, uint64_t file_size, bool enable_hash);
 
   ~FileBlob() = default;
@@ -41,13 +39,13 @@ public:
 
   auto valid() -> bool;
 
-  // 如果是读文件，则构造时完整计算一次哈希
-  // 如果是写文件，则调用 file_hash 再计算哈希
   auto file_hash() -> const std::string &;
 
   auto trunk_hash(uint64_t idx) -> const std::string &;
 
   auto unused_trunks() -> const std::set<uint64_t> &;
+
+  auto used_trunks() -> const std::set<uint64_t> &;
 
   auto set_trunk_used(uint64_t idx) -> void;
 
