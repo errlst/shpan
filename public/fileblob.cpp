@@ -1,4 +1,5 @@
 #include "fileblob.h"
+#include <crypto++/sha3.h>
 #include <iostream>
 
 FileBlob::FileBlob(const std::string &path, bool enable_hash)
@@ -108,11 +109,12 @@ auto FileBlob::trunk_size(uint64_t idx) -> uint64_t {
 auto FileBlob::valid() -> bool { return !fs_.bad(); }
 
 auto FileBlob::file_hash() -> const std::string & {
+
   if (hash_state_ != NO_HASH && file_hash_.empty()) {
-    auto md5 = CryptoPP::Weak1::MD5{};
+    auto sha = CryptoPP::SHA3_512{};
     CryptoPP::FileSource(path_.data(), true,
                          new CryptoPP::HashFilter(
-                             md5, new CryptoPP::HexEncoder(
+                             sha, new CryptoPP::HexEncoder(
                                       new CryptoPP::StringSink(file_hash_))));
   }
   return file_hash_;

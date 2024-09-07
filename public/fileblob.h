@@ -3,14 +3,15 @@
 #include <cryptopp/files.h>
 #include <cryptopp/hex.h>
 #include <cryptopp/md5.h>
+#include <cryptopp/sha3.h>
 #include <cstdint>
 #include <fstream>
 #include <map>
 #include <optional>
 #include <set>
 
-// 处理文件的读取和写入操作，同时支持对文件内容的哈希计算。
-// 根据构造函数的不同，哈希计算可以在文件读取时或写入时进行。
+// 对整个文件进行哈希时，使用sha3-512
+// 对文件块进行哈希时，使用md5
 class FileBlob {
 private:
   enum HashState { NO_HASH, HASH_ON_WRITE, HASH_ON_READ };

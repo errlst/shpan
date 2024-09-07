@@ -2,7 +2,7 @@ include_directories(${CMAKE_SOURCE_DIR}/public)
 
 
 
-# 随机数文件
+# 生成随机文件
 execute_process(
     COMMAND dd if=/dev/random of=${CMAKE_BINARY_DIR}/public/test/fileblob_test_100M bs=1M count=100
     RESULT_VARIABLE result
