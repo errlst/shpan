@@ -64,7 +64,7 @@ private:
   std::string file_hash_;                       // 整个文件的hash
   std::map<uint64_t, std::string> trunks_hash_; // 保存各个块的hash
   std::set<uint64_t> unused_trunks_;            // 未被使用的块集合
-  CryptoPP::Weak1::MD5 hash_context_; // 写文件时需要的上下文
+  CryptoPP::Weak1::MD5 hash_context_;           // 写文件时需要的上下文
 
 private:
   inline static uint64_t NEXT_ID = 0;

@@ -4,5 +4,9 @@ project(shpan)
 
 set(CMAKE_CXX_STANDARD 20)
 
+add_compile_options(-Wall)
+
+include_directories(public)
+
 add_subdirectory(public/test)
 add_subdirectory(server)

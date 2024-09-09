@@ -28,5 +28,8 @@ execute_process(
 )
 
 add_executable(test_fileblob test_fileblob.cpp ${CMAKE_SOURCE_DIR}/public/fileblob.cpp)
-
 target_link_libraries(test_fileblob cryptopp)
+
+
+add_executable(test_log test_log.cpp ../log.cpp)
+target_link_libraries(test_log gtest spdlog fmt)
