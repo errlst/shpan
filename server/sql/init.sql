@@ -12,7 +12,8 @@ CREATE TABLE
 CREATE TABLE
     file_ref_table (
         id INT AUTO_INCREMENT PRIMARY KEY,
-        ref_count INT NOT NULL DEFAULT 1 file_path TEXT NOT NULL,
+        ref_count INT NOT NULL DEFAULT 1,
+        file_path TEXT NOT NULL,
     );
 
 -- 引用计数为0时自动删除该条目，并抛出异常

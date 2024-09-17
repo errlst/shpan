@@ -32,9 +32,17 @@ TEST(test_log, log_auto_files) {
   }
 }
 
-auto main(int argc, char *argv[]) -> int {
-  Log::init(argv[0], std::chrono::seconds(1));
-  testing::InitGoogleTest();
+auto main() -> int {
+  Log::init("test_log", std::chrono::seconds(1));
 
+  // Log::setLevel(Log::Level::DEBUG);
+  // for (auto i = 0; i < 5; ++i) {
+  //   Log::info(std::format("{}", i));
+  //   std::this_thread::sleep_for(std::chrono::seconds{1});
+  // }
+
+  // return 0;
+
+  testing::InitGoogleTest();
   return RUN_ALL_TESTS();
 }

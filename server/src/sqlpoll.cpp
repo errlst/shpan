@@ -30,10 +30,7 @@ auto SqlPoll::execute(const std::string &sql) -> std::optional<std::string> {
 
 auto SqlPoll::get_db() -> std::shared_ptr<sqlite3pp::database> {
   auto lock = std::unique_lock<std::mutex>{dbs_mut_};
-
-  if (dbs_.empty()) {
-    dbs_cond_.wait(lock, [this] { return !dbs_.empty(); });
-  }
+  dbs_cond_.wait(lock, [this] { return !dbs_.empty(); });
 
   auto it = dbs_.begin();
   auto db = std::shared_ptr<sqlite3pp::database>{
