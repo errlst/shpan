@@ -1,11 +1,11 @@
 -- 条目表
-CREATE TABLE
-    entry_table (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        ref_id INT DEFAULT NULL,
-        path TEXT NOT NULL, -- 用户空间路径
-        shared_link TEXT DEFAULT NULL,
-        is_directory BOOLEAN NOT NULL
+create table
+    if not exists entry_table (
+        id integer primary key autoincrement,
+        ref_id integer not null,
+        path txt not null, -- 用户空间路径
+        shared_link text default null,
+        is_directory boolean not null
     );
 
 -- 文件引用表

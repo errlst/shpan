@@ -1,4 +1,4 @@
 #include "entry.h"
-#include "config.h"
-#include "sqlpoll.h"
-#include <format>
+
+auto Entry::create(const std::string &path, bool is_directory,
+                   const std::string &db_name) -> std::expected<Entry, std::string> {}
