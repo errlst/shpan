@@ -9,24 +9,25 @@ CREATE TABLE
     );
 
 -- 文件引用表
-CREATE TABLE
-    file_ref_table (
-        id INT AUTO_INCREMENT PRIMARY KEY,
-        ref_count INT NOT NULL DEFAULT 1,
-        file_path TEXT NOT NULL,
+-- file_path 为系统中文件的路径，存储路径为 raws/${hash}_${filesize}
+create table
+    if not exists file_ref_table (
+        id integer primary key autoincrement,
+        ref_count integer not null default 1,
+        file_path text not null unique
     );
 
 -- 引用计数为0时自动删除该条目，并抛出异常
-CREATE TRIGGER delete_when_ref_count_zero AFTER
-UPDATE OF ref_count ON entry_ref_table FOR EACH ROW WHEN NEW.ref_count = 0 BEGIN
-DELETE FROM entry_ref_table
-WHERE
+create trigger if not exists delete_when_ref_count_zero after
+update of ref_count on file_ref_table for each row when NEW.ref_count = 0 begin
+delete from file_ref_table
+where
     id = NEW.id;
 
-SELECT
+select
     RAISE (FAIL, 'ref_count is zero');
 
-END;
+end;
 
 -- 条目共享链接
 CREATE TABLE

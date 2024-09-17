@@ -1,10 +1,7 @@
 #include "log.h"
-#include <iostream>
 #include <latch>
-#include <shared_mutex>
 
-static std::shared_ptr<spdlog::logger> logger{nullptr};
-static std::shared_mutex logger_mu{};
+static auto logger = std::shared_ptr<spdlog::logger>{nullptr};
 
 auto Log::init(const std::string &program_name,
                const std::chrono::seconds &du) -> void {
@@ -19,21 +16,16 @@ auto Log::init(const std::string &program_name,
           std::format("./log/{}_{}-{:0>2}-{:0>2}_{:0>2}:{:0>2}:{:0>2}.log",
                       program_name, ptm->tm_year + 1900, ptm->tm_mon + 1,
                       ptm->tm_mday, ptm->tm_hour, ptm->tm_min, ptm->tm_sec);
-      std::cout << log_file_path << "\n";
 
       auto console_sink =
           std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
       auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(
           log_file_path, true);
 
-      {
-        auto lock = std::unique_lock{logger_mu};
-        if (logger != nullptr) {
-          logger->flush();
-        }
-        logger = std::make_shared<spdlog::logger>(
-            program_name, spdlog::sinks_init_list{console_sink, file_sink});
-      }
+      auto level = logger ? logger->level() : spdlog::level::info;
+      logger = std::make_shared<spdlog::logger>(
+          program_name, spdlog::sinks_init_list{console_sink, file_sink});
+      logger->set_level(level);
 
       first_latch.count_down();
       // 一段时间后生成新的日志文件
@@ -45,7 +37,6 @@ auto Log::init(const std::string &program_name,
 
 auto Log::setLevel(Log::Level l) -> void {
   using enum Log::Level;
-  auto lock = std::shared_lock{logger_mu};
   switch (l) {
   case DEBUG:
     logger->set_level(spdlog::level::debug);
@@ -62,22 +53,22 @@ auto Log::setLevel(Log::Level l) -> void {
   }
 }
 
-auto Log::debug(const std::string &msg) -> void {
-  auto lock = std ::shared_lock{logger_mu};
-  logger->debug(msg);
+auto Log::debug(const std::string &msg, std::source_location sl) -> void {
+  logger->debug(
+      std::format("{}:{}\n{}\n", sl.function_name(), sl.line(), msg));
 }
 
-auto Log::info(const std::string &msg) -> void {
-  auto lock = std ::shared_lock{logger_mu};
-  logger->info(msg);
+auto Log::info(const std::string &msg, std::source_location sl) -> void {
+  logger->info(
+      std::format("{}:{}\n{}\n", sl.function_name(), sl.line(), msg));
 }
 
-auto Log::warn(const std::string &msg) -> void {
-  auto lock = std ::shared_lock{logger_mu};
-  logger->warn(msg);
+auto Log::warn(const std::string &msg, std::source_location sl) -> void {
+  logger->warn(
+      std::format("{}:{}\n{}\n", sl.function_name(), sl.line(), msg));
 }
 
-auto Log::error(const std::string &msg) -> void {
-  auto lock = std ::shared_lock{logger_mu};
-  logger->error(msg);
+auto Log::error(const std::string &msg, std::source_location sl) -> void {
+  logger->error(
+      std::format("{}:{}\n{}\n", sl.function_name(), sl.line(), msg));
 }

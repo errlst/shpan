@@ -8,5 +8,5 @@ add_compile_options(-Wall)
 
 include_directories(public)
 
-add_subdirectory(public/test)
+add_subdirectory(public)
 add_subdirectory(server)

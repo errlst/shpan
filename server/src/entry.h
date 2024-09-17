@@ -6,10 +6,8 @@
 class Entry {
 
 public:
-  static auto create(const std::string &path, bool is_directory,
+  static auto insert(const std::string &path, bool is_directory,
                      int64_t ref_id) -> std::optional<Entry>;
-
-  static auto get(int64_t id) -> std::optional<Entry>;
 
 private:
   int64_t id_;
