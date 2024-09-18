@@ -1,6 +1,5 @@
 #pragma once
 #include "config.h"
-#include "log.h"
 #include <cstdint>
 #include <sqlpoll.h>
 #include <string>
