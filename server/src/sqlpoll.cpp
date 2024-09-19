@@ -20,7 +20,9 @@ auto SqlPoll::execute(const std::string &sql) -> std::expected<uint64_t, std::st
         if (ec == SQLITE_OK) {
             break;
         }
-        Log::error(std::format("{}\nsql: {}", db->error_msg(), sql));
+#ifdef TEST
+        Log::warn(std::format("{}\tsql: {}", db->error_msg(), sql));
+#endif
         if (ec != SQLITE_BUSY && ec != SQLITE_LOCKED) {
             return std::unexpected{db->error_msg()};
         }
@@ -42,15 +44,59 @@ auto SqlPoll::query_one(const std::string &sql) -> std::expected<std::shared_ptr
                 throw sqlite3pp::database_error{"query more than one"};
             }
             return query;
-        } catch (sqlite3pp::database_error &e) {
-            Log::error(std::format("{}\nsql: {}", e.what(), sql));
+        } catch (const sqlite3pp::database_error &e) {
+#ifdef TEST
+            Log::warn(std::format("{}\tsql: {}", e.what(), sql));
+#endif
             if (db->error_code() != SQLITE_BUSY && db->error_code() != SQLITE_LOCKED) {
-                return std::expected<std::shared_ptr<sqlite3pp::query>, std::string>{std::unexpect, e.what()};
+                return std::unexpected{e.what()};
             }
             std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
         }
     }
     std::unreachable();
+}
+
+auto SqlPoll::query_empty(const std::string &sql) -> std::expected<void, std::string> {
+    auto db = get_db();
+    while (true) {
+        try {
+            auto query = sqlite3pp::query{*db, sql.data()};
+            if (query.begin() == query.end()) {
+                return {};
+            }
+            throw sqlite3pp::database_error{"query not empty"};
+        } catch (const sqlite3pp::database_error &e) {
+#ifdef TEST
+            Log::warn(std::format("{}\tsql: {}", e.what(), sql));
+#endif
+            if (db->error_code() != SQLITE_BUSY && db->error_code() != SQLITE_LOCKED) {
+                return std::unexpected{e.what()};
+            }
+            std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
+        }
+    }
+}
+
+auto SqlPoll::transaction(const std::vector<std::string> &sqls) -> std::expected<std::vector<uint64_t>, std::string> {
+    auto db = get_db();
+    while (true) {
+        try {
+            auto rowids = std::vector<uint64_t>{};
+            auto txn = sqlite3pp::transaction{*db};
+            for (const auto &sql : sqls) {
+                db->execute(sql.data());
+                rowids.push_back(db->last_insert_rowid());
+            }
+            txn.commit();
+        } catch (const sqlite3pp::database_error &e) {
+            Log::warn(std::format("{}\t", e.what()));
+            if (db->error_code() != SQLITE_BUSY && db->error_code() != SQLITE_LOCKED) {
+                return std::unexpected{e.what()};
+            }
+            std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
+        }
+    }
 }
 
 auto SqlPoll::get_db() -> std::shared_ptr<sqlite3pp::database> {

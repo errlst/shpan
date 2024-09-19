@@ -2,12 +2,12 @@
 #include "log.h"
 #include "sqlpoll.h"
 
-auto FileRef::init_db(const std::string &db_name) -> bool {
+auto FileRef::init_db(const std::string &db_name) -> void {
     auto sqls = std::vector<std::string>{//
                                          "create table if not exists "
                                          "file_ref_table ( "
                                          "    id integer primary key autoincrement, "
-                                         "    ref_count integer not null default 1, "
+                                         "    ref_count integer not null default 0, "
                                          "    file_path text not null unique "
                                          ");",
                                          //
@@ -22,18 +22,12 @@ auto FileRef::init_db(const std::string &db_name) -> bool {
                                          "    RAISE (FAIL, 'ref_count is zero'); "
                                          "end;"};
 
-    auto db = SqlPoll::instance(db_name).get_db();
-    try {
-        for (const auto &sql : sqls) {
-            if (db->execute(sql.data()) != SQLITE_OK) {
-                throw sqlite3pp::database_error{db->error_msg()};
-            }
+    for (auto &sql : sqls) {
+        if (!SqlPoll::instance(db_name).execute(sql).has_value()) {
+            Log::error("fileref init db failed");
+            abort();
         }
-    } catch (const sqlite3pp::database_error &e) {
-        Log::error(std::format("err : {}\n", e.what()));
     }
-
-    return true;
 }
 
 auto FileRef::insert(const std::string &path, const std::string &db_name) -> std::expected<FileRef, std::string> {
@@ -52,6 +46,27 @@ auto FileRef::insert(const std::string &path, const std::string &db_name) -> std
     auto it = query.value()->begin();
     return FileRef{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
                    (*it).get<std::string>(2)};
+}
+
+auto FileRef::select(std::variant<uint64_t, std::string> id_or_path,
+                     const std::string &db_name) -> std::expected<FileRef, std::string> {
+    auto sql = std::string{};
+    if (id_or_path.index() == 0) {
+        sql = std::format("select * from file_ref_table where id = {};", std::get<0>(id_or_path));
+    } else {
+        sql = std::format("select * from file_ref_table where file_path = '{}';", std::get<1>(id_or_path));
+    }
+
+    auto db = SqlPoll::instance(db_name).get_db();
+    auto query = SqlPoll::instance(db_name).query_one(sql);
+    if (!query) {
+        return std::expected<FileRef, std::string>{std::unexpect, query.error()};
+    }
+
+    auto it = query.value()->begin();
+    auto ref = FileRef{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
+                       (*it).get<std::string>(2)};
+    return std::expected<FileRef, std::string>{ref};
 }
 
 auto FileRef::increase(uint64_t id, const std::string &db_name) -> bool {

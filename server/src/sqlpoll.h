@@ -22,7 +22,13 @@ class SqlPoll {
     // 如果数据不止一个，返回错误
     auto query_one(const std::string &) -> std::expected<std::shared_ptr<sqlite3pp::query>, std::string>;
 
+    // 如果有数据，返回错误
+    auto query_empty(const std::string &) -> std::expected<void, std::string>;
+
     auto get_db() -> std::shared_ptr<sqlite3pp::database>;
+
+    // 如果执行成果，返回每次 execute 的 rowid
+    auto transaction(const std::vector<std::string> &) -> std::expected<std::vector<uint64_t>, std::string>;
 
     auto db_count() -> uint64_t {
         auto lock = std::unique_lock<std::mutex>{dbs_mut_};

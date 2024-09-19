@@ -2,8 +2,8 @@
 create table
     if not exists entry_table (
         id integer primary key autoincrement,
-        ref_id integer not null,
-        path txt not null, -- 用户空间路径
+        ref_id integer default null,
+        path txt not null unique, -- 用户空间路径
         shared_link text default null,
         is_directory boolean not null
     );
@@ -13,7 +13,7 @@ create table
 create table
     if not exists file_ref_table (
         id integer primary key autoincrement,
-        ref_count integer not null default 1,
+        ref_count integer not null default 0,
         file_path text not null unique
     );
 
