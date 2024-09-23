@@ -1,12 +1,11 @@
 #include "sqlpoll.h"
 #include "log.h"
-#include <map>
 
-SqlPoll::SqlPoll(const std::string &db_name) : db_name_{db_name}, rng_{std::random_device{}()} {
+SqlPoll::SqlPoll() : rng_{std::random_device{}()} {
     sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
     while (dbs_.size() < DBS_COUNT) {
         try {
-            dbs_.emplace(new sqlite3pp::database{db_name_.data(), SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE});
+            dbs_.emplace(new sqlite3pp::database{DB_NAME, SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE});
         } catch (const sqlite3pp::database_error &) {
             throw;
         }
@@ -14,26 +13,44 @@ SqlPoll::SqlPoll(const std::string &db_name) : db_name_{db_name}, rng_{std::rand
 }
 
 auto SqlPoll::execute(const std::string &sql) -> std::expected<uint64_t, std::string> {
-    auto db = get_db();
     while (true) {
+        auto db = get_db();
         auto ec = db->execute(sql.data());
         if (ec == SQLITE_OK) {
-            break;
+            return {db->last_insert_rowid()};
         }
-#ifdef TEST
-        Log::warn(std::format("{}\tsql: {}", db->error_msg(), sql));
+#ifdef IN_TEST
+        Log::warn(std::format("{}\tdb: {}\tsql: {}", db->error_msg(), DB_NAME, sql));
 #endif
-        if (ec != SQLITE_BUSY && ec != SQLITE_LOCKED) {
+        if (can_tryagain(db)) {
+            continue;
+        }
+        return std::unexpected{db->error_msg()};
+    }
+    std::unreachable();
+}
+
+auto SqlPoll::query(const std::string &sql) -> std::expected<std::shared_ptr<sqlite3pp::query>, std::string> {
+    while (true) {
+        auto db = get_db();
+        try {
+            return std::make_shared<sqlite3pp::query>(*db, sql.data());
+        } catch (const sqlite3pp::database_error &e) {
+#ifdef IN_TEST
+            Log::warn(std::format("{}\tdb: {}\tsql: {}", e.what(), DB_NAME, sql));
+#endif
+            if (can_tryagain(db)) {
+                continue;
+            }
             return std::unexpected{db->error_msg()};
         }
-        std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
     }
-    return {db->last_insert_rowid()};
+    std::unreachable();
 }
 
 auto SqlPoll::query_one(const std::string &sql) -> std::expected<std::shared_ptr<sqlite3pp::query>, std::string> {
-    auto db = get_db();
     while (true) {
+        auto db = get_db();
         try {
             auto query = std::make_shared<sqlite3pp::query>(*db, sql.data());
             auto it = query->begin();
@@ -45,38 +62,38 @@ auto SqlPoll::query_one(const std::string &sql) -> std::expected<std::shared_ptr
             }
             return query;
         } catch (const sqlite3pp::database_error &e) {
-#ifdef TEST
-            Log::warn(std::format("{}\tsql: {}", e.what(), sql));
+#ifdef IN_TEST
+            Log::warn(std::format("{}\tdb: {}\tsql: {}", e.what(), DB_NAME, sql));
 #endif
-            if (db->error_code() != SQLITE_BUSY && db->error_code() != SQLITE_LOCKED) {
-                return std::unexpected{e.what()};
+            if (can_tryagain(db)) {
+                continue;
             }
-            std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
+            return std::unexpected{db->error_msg()};
         }
     }
     std::unreachable();
 }
 
-auto SqlPoll::query_empty(const std::string &sql) -> std::expected<void, std::string> {
-    auto db = get_db();
-    while (true) {
-        try {
-            auto query = sqlite3pp::query{*db, sql.data()};
-            if (query.begin() == query.end()) {
-                return {};
-            }
-            throw sqlite3pp::database_error{"query not empty"};
-        } catch (const sqlite3pp::database_error &e) {
-#ifdef TEST
-            Log::warn(std::format("{}\tsql: {}", e.what(), sql));
-#endif
-            if (db->error_code() != SQLITE_BUSY && db->error_code() != SQLITE_LOCKED) {
-                return std::unexpected{e.what()};
-            }
-            std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
-        }
-    }
-}
+// auto SqlPoll::query_empty(const std::string &sql) -> std::expected<void, std::string> {
+//     auto db = get_db();
+//     while (true) {
+//         try {
+//             auto query = sqlite3pp::query{*db, sql.data()};
+//             if (query.begin() == query.end()) {
+//                 return {};
+//             }
+//             throw sqlite3pp::database_error{"query not empty"};
+//         } catch (const sqlite3pp::database_error &e) {
+// #ifdef IN_TEST
+//             Log::warn(std::format("{}\tdb: {}\tsql: {}", e.what(), DB_NAME, sql));
+// #endif
+//             if (can_tryagain(db)) {
+//                 continue;
+//             }
+//             return std::unexpected{db->error_msg()};
+//         }
+//     }
+// }
 
 auto SqlPoll::transaction(const std::vector<std::string> &sqls) -> std::expected<std::vector<uint64_t>, std::string> {
     auto db = get_db();
@@ -89,12 +106,15 @@ auto SqlPoll::transaction(const std::vector<std::string> &sqls) -> std::expected
                 rowids.push_back(db->last_insert_rowid());
             }
             txn.commit();
+            return rowids;
         } catch (const sqlite3pp::database_error &e) {
+#ifdef IN_TEST
             Log::warn(std::format("{}\t", e.what()));
-            if (db->error_code() != SQLITE_BUSY && db->error_code() != SQLITE_LOCKED) {
-                return std::unexpected{e.what()};
+#endif
+            if (can_tryagain(db)) {
+                continue;
             }
-            std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
+            return std::unexpected{db->error_msg()};
         }
     }
 }
@@ -114,10 +134,15 @@ auto SqlPoll::get_db() -> std::shared_ptr<sqlite3pp::database> {
     return db;
 }
 
-auto SqlPoll::instance(const std::string &db_name) -> SqlPoll & {
-    static auto ins_ = std::map<std::string, std::unique_ptr<SqlPoll>>{};
-    if (!ins_.contains(db_name)) {
-        ins_.emplace(db_name, new SqlPoll{db_name});
+auto SqlPoll::can_tryagain(std::shared_ptr<sqlite3pp::database> db) -> bool {
+    if (db->error_code() == SQLITE_BUSY || db->error_code() == SQLITE_LOCKED) {
+        std::this_thread::sleep_for(std::chrono::microseconds(rng_() % 100 + 1));
+        return true;
     }
-    return *ins_.at(db_name);
+    return false;
+}
+
+auto SqlPoll::instance() -> SqlPoll & {
+    static auto ins_ = SqlPoll{};
+    return ins_;
 }

@@ -1,35 +1,45 @@
 #pragma once
-#include "config.h"
 #include <cstdint>
 #include <expected>
+#include <string>
+#include <vector>
 
 class Entry {
   private:
-    Entry(uint64_t id, uint64_t ref_id, const std::string &path, const std::string &shared_link, bool is_directory)
-        : id_(id), ref_id_(ref_id), path_(path), shared_link_(shared_link), is_directory_(is_directory) {}
+    Entry(uint64_t id, uint64_t ref_id, const std::string &path, const std::string &shared_link)
+        : id_(id), ref_id_(ref_id), path_(path), shared_link_(shared_link) {}
 
   public:
-    static auto init_db(const std::string &db_name = config::DB_NAME) -> void;
+    static auto create(const std::string &path, uint64_t ref_id = 0) -> std::expected<Entry, std::string>;
 
-    // 如果是目录，ref_id 忽略
-    static auto create(const std::string &path, bool is_directory, uint64_t ref_id = 0,
-                       const std::string &db_name = config::DB_NAME) -> std::expected<Entry, std::string>;
+    static auto find(uint64_t id_or_path) -> std::expected<Entry, std::string>;
+
+    static auto remove(uint64_t id) -> std::expected<void, std::string>;
 
   public:
-    auto id() const -> uint64_t;
+    // 创建共享连接，不会验证当前是否已经存在共享
+    auto create_shared_link(uint64_t valid_times) -> std::expected<void, std::string>;
 
-    auto path() const -> const std::string &;
+    // 减少共享连接剩余次数
+    auto dec_left_shared_times() -> std::expected<void, std::string>;
 
-    auto shared_link() const -> const std::string &;
+    auto add_child(uint64_t id) -> std::expected<void, std::string>;
 
-    auto is_directory() const -> bool;
+    auto childred() -> std::expected<std::vector<Entry>, std::string>;
 
-    auto ref_id() const -> uint64_t;
+    auto id() const -> uint64_t { return id_; }
+
+    auto ref_id() const -> uint64_t { return ref_id_; }
+
+    auto path() const -> const std::string & { return path_; }
+
+    auto shared_link() const -> const std::string & { return shared_link_; }
+
+    auto is_directory() const -> bool { return ref_id_ == 0; }
 
   private:
     uint64_t id_;
     uint64_t ref_id_;
     std::string path_;
     std::string shared_link_;
-    bool is_directory_;
 };
