@@ -1,10 +1,7 @@
 #pragma once
-#include "sqlpoll.h"
 #include <cstdint>
 #include <expected>
-#include <format>
 #include <string>
-#include <variant>
 #include <vector>
 
 class FileRef {
@@ -17,7 +14,9 @@ class FileRef {
   public:
     static auto create(const std::string &path) -> std::expected<FileRef, std::string>;
 
-    static auto find(std::variant<uint64_t, std::string> id_or_path) -> std::expected<FileRef, std::string>;
+    static auto find(uint64_t id) -> std::expected<FileRef, std::string>;
+
+    static auto find(const std::string &path) -> std::expected<FileRef, std::string>;
 
     // 获取需要被删除的文件，获取后将从 file_to_del_table 中删除
     static auto to_del_files() -> std::expected<std::vector<std::string>, std::string>;

@@ -12,7 +12,9 @@ class Entry {
   public:
     static auto create(const std::string &path, uint64_t ref_id = 0) -> std::expected<Entry, std::string>;
 
-    static auto find(uint64_t id_or_path) -> std::expected<Entry, std::string>;
+    static auto find(uint64_t id) -> std::expected<Entry, std::string>;
+
+    static auto find(const std::string &path) -> std::expected<Entry, std::string>;
 
     static auto remove(uint64_t id) -> std::expected<void, std::string>;
 

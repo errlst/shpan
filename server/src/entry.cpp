@@ -26,6 +26,15 @@ auto Entry::find(uint64_t id) -> std::expected<Entry, std::string> {
                  (*it).get<std::string>(2), (*it).get<std::string>(3)};
 }
 
+auto Entry::find(const std::string &path) -> std::expected<Entry, std::string> {
+    auto query = SqlPoll::instance().query_one(std::format("select * from entry_table where path = '{}'", path));
+    CHECK_EXPECT_OK(query);
+
+    auto it = query.value()->begin();
+    return Entry{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
+                 (*it).get<std::string>(2), (*it).get<std::string>(3)};
+}
+
 auto Entry::remove(uint64_t id) -> std::expected<void, std::string> {
     auto res = SqlPoll::instance().execute(std::format("delete from entry_table where id = {}", id));
     CHECK_EXPECT_OK(res);
@@ -74,11 +83,15 @@ auto Entry::add_child(uint64_t id) -> std::expected<void, std::string> {
 }
 
 auto Entry::childred() -> std::expected<std::vector<Entry>, std::string> {
-    auto query = SqlPoll::instance().query(std::format("select * from entry_rel_table where p_id = {}", id_));
-    CHECK_EXPECT_OK(query);
+    auto childred = SqlPoll::instance().query(std::format("select e.* "
+                                                          "from entry_rel_table rel "
+                                                          "join entry_table e on rel.c_id = e.id "
+                                                          "where rel.p_id = {}; ",
+                                                          id_));
+    CHECK_EXPECT_OK(childred);
 
     auto res = std::vector<Entry>{};
-    for (auto it = query.value()->begin(); it != query.value()->end(); ++it) {
+    for (auto it = childred.value()->begin(); it != childred.value()->end(); ++it) {
         res.push_back(Entry{static_cast<uint64_t>((*it).get<long long>(0)),
                             static_cast<uint64_t>((*it).get<long long>(1)), (*it).get<std::string>(2),
                             (*it).get<std::string>(3)});

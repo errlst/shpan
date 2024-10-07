@@ -10,3 +10,5 @@ include_directories(public)
 
 add_subdirectory(public)
 add_subdirectory(server)
+add_subdirectory(client)
+add_subdirectory(bench)

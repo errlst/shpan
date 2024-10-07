@@ -16,13 +16,22 @@ auto FileRef::create(const std::string &path) -> std::expected<FileRef, std::str
                    (*it).get<std::string>(2)};
 }
 
-auto FileRef::find(std::variant<uint64_t, std::string> id_or_path) -> std::expected<FileRef, std::string> {
-    auto sql = std::string{};
-    if (id_or_path.index() == 0) {
-        sql = std::format("select * from file_ref_table where id = {};", std::get<0>(id_or_path));
-    } else {
-        sql = std::format("select * from file_ref_table where file_path = '{}';", std::get<1>(id_or_path));
+auto FileRef::find(uint64_t id) -> std::expected<FileRef, std::string> {
+    auto sql = std::format("select * from file_ref_table where id = {};", id);
+
+    auto query = SqlPoll::instance().query_one(sql);
+    if (!query) {
+        return std::expected<FileRef, std::string>{std::unexpect, query.error()};
     }
+
+    auto it = query.value()->begin();
+    auto ref = FileRef{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
+                       (*it).get<std::string>(2)};
+    return std::expected<FileRef, std::string>{ref};
+}
+
+auto FileRef::find(const std::string &path) -> std::expected<FileRef, std::string> {
+    auto sql = std::format("select * from file_ref_table where file_path = '{}';", path);
 
     auto query = SqlPoll::instance().query_one(sql);
     if (!query) {

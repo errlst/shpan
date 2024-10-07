@@ -59,7 +59,7 @@ create table
     entry_table (
         id integer primary key autoincrement,
         ref_id integer not null,
-        path txt not null, -- 用户空间路径
+        path text not null unique, -- 用户空间路径，命名规则为 usr/xxx
         shared_link text default ''
     );
 

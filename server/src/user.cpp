@@ -4,12 +4,15 @@
 #include "sqlpoll.h"
 
 auto User::create(const std::string &email, const std::string &passwd) -> std::expected<User, std::string> {
-    auto root_entry = Entry::create("/", 0);
+    auto root_entry = Entry::create(email + "/", 0);
     CHECK_EXPECT_OK(root_entry);
 
     auto res = SqlPoll::instance().execute(
-        std::format("insert into user_table(email, passwd, root_entry_id) values('{}', '{}', {})", email, passwd,
+        std::format("insert into user_table(email, passwd, root_entry_id) values ('{}','{}',{})", email, passwd,
                     root_entry->id()));
+    if (!res.has_value()) {
+        CHECK_EXPECT_OK(Entry::remove(root_entry->id()));
+    }
     CHECK_EXPECT_OK(res);
 
     return User{email, passwd, root_entry->id()};

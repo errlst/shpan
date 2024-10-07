@@ -1,6 +1,8 @@
 #include "sqlpoll.h"
 #include "log.h"
 
+#define IN_TEST 
+
 SqlPoll::SqlPoll() : rng_{std::random_device{}()} {
     sqlite3_config(SQLITE_CONFIG_MULTITHREAD);
     while (dbs_.size() < DBS_COUNT) {

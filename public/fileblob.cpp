@@ -100,7 +100,6 @@ auto FileBlob::trunk_size(uint64_t idx) -> uint64_t {
 auto FileBlob::valid() -> bool { return !fs_.bad(); }
 
 auto FileBlob::file_hash() -> const std::string & {
-
     if (hash_state_ != NO_HASH && file_hash_.empty()) {
         auto sha = CryptoPP::SHA3_512{};
         CryptoPP::FileSource(

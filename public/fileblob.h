@@ -66,6 +66,10 @@ class FileBlob {
     std::set<uint64_t> unused_trunks_;            // 未被使用的块集合
     CryptoPP::Weak1::MD5 hash_context_;           // 写文件时需要的上下文
 
+  public:
+    inline static uint32_t file_hash_size = 128;
+    inline static uint32_t trunk_hash_size = 32;
+
   private:
     inline static uint64_t NEXT_ID = 0;
     inline static constexpr uint64_t TRUNK_SIZE = 1024 * 1024; // 每个文件块大小
