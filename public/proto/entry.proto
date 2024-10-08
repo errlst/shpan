@@ -4,7 +4,7 @@ syntax = "proto3";
 package proto;
 
 message EntryItem {
-    int32 size = 1;
+    uint64 size = 1;
     bool is_dir = 2;
     string path = 3;
     string shared_link = 4;

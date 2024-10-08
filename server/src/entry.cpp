@@ -3,9 +3,9 @@
 #include "sqlpoll.h"
 #include <random>
 
-auto Entry::create(const std::string &path, uint64_t ref_id) -> std::expected<Entry, std::string> {
+auto Entry::create(uint64_t file_size, const std::string &path, uint64_t ref_id) -> std::expected<Entry, std::string> {
     auto rowid = SqlPoll::instance().execute(
-        std::format("insert into entry_table (path, ref_id) values('{}', {})", path, ref_id));
+        std::format("insert into entry_table (file_size, path, ref_id) values({}, '{}', {})", file_size, path, ref_id));
     CHECK_EXPECT_OK(rowid);
 
     auto query =
@@ -14,7 +14,7 @@ auto Entry::create(const std::string &path, uint64_t ref_id) -> std::expected<En
 
     auto it = query.value()->begin();
     return Entry{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
-                 (*it).get<std::string>(2), ""};
+                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""};
 }
 
 auto Entry::find(uint64_t id) -> std::expected<Entry, std::string> {
@@ -23,7 +23,7 @@ auto Entry::find(uint64_t id) -> std::expected<Entry, std::string> {
 
     auto it = query.value()->begin();
     return Entry{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
-                 (*it).get<std::string>(2), (*it).get<std::string>(3)};
+                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""};
 }
 
 auto Entry::find(const std::string &path) -> std::expected<Entry, std::string> {
@@ -32,7 +32,7 @@ auto Entry::find(const std::string &path) -> std::expected<Entry, std::string> {
 
     auto it = query.value()->begin();
     return Entry{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
-                 (*it).get<std::string>(2), (*it).get<std::string>(3)};
+                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""};
 }
 
 auto Entry::remove(uint64_t id) -> std::expected<void, std::string> {
@@ -93,8 +93,8 @@ auto Entry::childred() -> std::expected<std::vector<Entry>, std::string> {
     auto res = std::vector<Entry>{};
     for (auto it = childred.value()->begin(); it != childred.value()->end(); ++it) {
         res.push_back(Entry{static_cast<uint64_t>((*it).get<long long>(0)),
-                            static_cast<uint64_t>((*it).get<long long>(1)), (*it).get<std::string>(2),
-                            (*it).get<std::string>(3)});
+                            static_cast<uint64_t>((*it).get<long long>(1)),
+                            static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""});
     }
     return res;
 }

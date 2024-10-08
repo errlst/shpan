@@ -74,8 +74,9 @@ static auto login(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack
         return create_pack_with_str_msg(r_pack->api, false, "user invalid");
     }
 
-    if (user->passwd() == usr.passwd()) {
-        Log::warn(std::format("req from {} passwd invalid {}", conn->address(), user.error()));
+    if (user->passwd() != usr.passwd()) {
+        Log::warn(std::format("req from {} passwd invalid {}, true passwd is {}", conn->address(), usr.passwd(),
+                              user->passwd()));
         return create_pack_with_str_msg(r_pack->api, false, "passwd invalid");
     }
 
@@ -105,6 +106,7 @@ static auto ls_entry(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_p
         if (childred.has_value()) {
             for (auto &child : childred.value()) {
                 auto pb_entry = pb_entrys.add_entrys();
+                pb_entry->set_size(child.file_size());
                 pb_entry->set_path(child.path().substr(child.path().find_first_of('/')));
                 pb_entry->set_shared_link(child.shared_link());
                 pb_entry->set_is_dir(child.ref_id() == 0);
@@ -112,6 +114,7 @@ static auto ls_entry(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_p
         }
     } else {
         auto pb_entry = pb_entrys.add_entrys();
+        pb_entry->set_size(entry->file_size());
         pb_entry->set_path(entry->path().substr(entry->path().find_first_of('/')));
         pb_entry->set_shared_link(entry->shared_link());
         pb_entry->set_is_dir(entry->ref_id() == 0);
@@ -149,7 +152,7 @@ static auto mk_dir(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pac
 
     // 创建目录
     auto path_str = path.string();
-    auto c_entry = Entry::create(cur_usr + path_str);
+    auto c_entry = Entry::create(0, cur_usr + path_str);
     if (!c_entry.has_value()) {
         Log::error(std::format("req from {} create entry faild {}", conn->address(), c_entry.error()));
         return create_pack_with_str_msg(r_pack->api, false, "create entry faild");
@@ -164,7 +167,12 @@ static auto mk_dir(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pac
 }
 
 // 上传文件元信息
-// 参数：文件路径 \0 文件大小(8字节) 文件哈希
+// 参数：proto::FileMeta
+// 返回state:
+//  0 失败，meta.id
+//  1 可以上传，meta.id
+//  2 秒传，无
+//  3 路径是目录，meta.id
 static auto upload_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) -> std::shared_ptr<Pack> {
     check_logined();
     auto cur_usr = std::any_cast<User>(conn->ext_data().at("user")).email();
@@ -173,18 +181,33 @@ static auto upload_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> 
     if (!file_meta.ParseFromArray(r_pack->data, r_pack->data_size) ||
         file_meta.hash().size() != FileBlob::file_hash_size) {
         Log::error(std::format("req from {} invalid arguments", conn->address()));
-        return create_pack_with_str_msg(r_pack->api, false, " invalid arguments");
+        return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
     }
 
-    // 计算父目录
+    // 检查路径
     auto path = std::filesystem::path{file_meta.path()};
     if (!path.is_absolute()) {
         Log::error(std::format("req from {} not absolute path : {}", conn->address(), path.string()));
-        return create_pack_with_str_msg(r_pack->api, false, "not absolute path");
+        return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
     }
     if (!path.has_parent_path()) {
         Log::error(std::format("req from {} invalid path : {}", conn->address(), path.string()));
-        return create_pack_with_str_msg(r_pack->api, false, "invalid path");
+        return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
+    }
+
+    // 判断条目是否存在；如果条目是目录，返回3
+    auto f_entry = Entry::find(cur_usr + path.string());
+    if (f_entry.has_value()) {
+        if (f_entry->is_directory()) {
+            Log::info(std::format("req from {} path is directory: {}", conn->address(), path.string()));
+            return create_pack_with_num_msg(r_pack->api, 3, file_meta.id());
+        }
+        if (!Entry::remove(f_entry->id()).has_value()) {
+            Log::info(std::format("req from {} file cover failed : {}", conn->address(), path.string()));
+            return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
+        }
+        Log::info(std::format("req from {} file has covered : {}", conn->address(), path.string()));
+        return create_pack_with_num_msg(r_pack->api, 1, file_meta.id());
     }
 
     // 判断父目录是否存在
@@ -192,15 +215,7 @@ static auto upload_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> 
     auto p_entry = Entry::find(cur_usr + p_path_str);
     if (!p_entry.has_value()) {
         Log::error(std::format("req from {} parent path not exists : {}", conn->address(), path.string()));
-        return create_pack_with_str_msg(r_pack->api, false, "parent path not exists");
-    }
-
-    // 判断文件是否已存在
-    // 如果文件存在，客户端决定是否需要覆盖
-    auto f_entry = Entry::find(cur_usr + path.string());
-    if (f_entry.has_value()) {
-        Log::info(std::format("req from {} file has exists : {}", conn->address(), path.string()));
-        return create_pack_with_str_msg(r_pack->api, true, "file has exists");
+        return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
     }
 
     // 判断是否存在相同哈希文件
@@ -210,38 +225,128 @@ static auto upload_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> 
         auto f_ref = FileRef::find(raw_path);
         if (!f_ref.has_value()) {
             Log::warn(std::format("req from {} invalid file ref : {}, {}", conn->address(), path.string(), raw_path));
-            return create_pack_with_str_msg(r_pack->api, false, "unknown failed");
+            return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
         }
 
-        auto f_entry = Entry::create(cur_usr + path.string(), f_ref->id());
+        auto f_entry = Entry::create(file_meta.size(), cur_usr + path.string(), f_ref->id());
         if (auto _ = p_entry->add_child(f_entry->id()); !_.has_value()) {
             Log::warn(std::format("req from {} add child failed : {}", conn->address(), _.error()));
-            return create_pack_with_str_msg(r_pack->api, false, "unkown failed");
+            return create_pack_with_num_msg(r_pack->api, 0, file_meta.id());
         }
         Log::info(std::format("req from {} trans sunccess ,{}", conn->address(), path.string()));
-        return create_pack_with_str_msg(r_pack->api, true, "trans sunccess");
+        return create_pack_with_num_msg(r_pack->api, 2, file_meta.id());
     }
 
     // 创建 file_blob，并返回 id
     if (!conn->ext_data().contains("up_fbs")) {
-        conn->ext_data()["up_fbs"] = std::map<uint64_t, std::shared_ptr<FileBlob>>{};
+        conn->ext_data()["up_fbs"] = std::map<uint64_t, std::shared_ptr<FileBlob>>{}; // blob
+        conn->ext_data()["up_fbs_cb"] =
+            std::map<uint64_t, std::function<std::shared_ptr<Pack>()>>{}; // blob上传完成后的回调
     }
     auto blob = std::make_shared<FileBlob>(raw_path, file_meta.size(), true);
-    std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data().at("up_fbs"))[blob->id()] = blob;
+    std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data().at("up_fbs"))[file_meta.id()] =
+        blob;
+    std::any_cast<std::map<uint64_t, std::function<std::shared_ptr<Pack>()>> &>(
+        conn->ext_data().at("up_fbs_cb"))[file_meta.id()] = [=] mutable -> std::shared_ptr<Pack> {
+        Log::debug("call up fbs cb");
+
+        // 添加到用户空间
+        auto f_ref = FileRef::create(raw_path);
+        if (!f_ref.has_value()) {
+            Log::warn(std::format("req from {}, create file ref failed", conn->address()));
+            return create_pack_with_str_msg(Api::UPLOAD_TRUNK, false, "create file ref failed");
+        }
+
+        auto f_entry = Entry::create(file_meta.size(), cur_usr + file_meta.path(), f_ref->id());
+        if (!f_entry.has_value()) {
+            Log::warn(std::format("req from {}, create file entry failed", conn->address()));
+            return create_pack_with_str_msg(Api::UPLOAD_TRUNK, false, "create file entry failed");
+        }
+
+        if (auto _ = p_entry->add_child(f_entry->id()); !_.has_value()) {
+            Log::warn(std::format("req from {}, add entry child failed", conn->address()));
+            return create_pack_with_str_msg(Api::UPLOAD_TRUNK, false, "add entry child failed");
+        }
+
+        std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data().at("up_fbs"))
+            .erase(file_meta.id());
+        Log::info(std::format("req from {}, upload {} finished", conn->address(), file_meta.path()));
+        return create_pack_with_num_msg(Api::UPLOAD_TRUNK, 2, file_meta.id());
+    };
     Log::info(std::format("req from {} start trans, id = {}, size = {}, path = {}", conn->address(), blob->id(),
                           file_meta.size(), raw_path));
-    return create_pack_with_num_msg(r_pack->api, true, blob->id());
+    return create_pack_with_num_msg(r_pack->api, 1, file_meta.id());
 }
 
-// 上传文件块（由服务器发送上传文件块的请求
+// 上传文件块
+// 参数：proto::FileTrunk
+// state：
+//  0 上传失败，返回错误消息
+//  1 当前块上传成功，返回 trunk（只有id和idx有效
+//  2 所有块上传完成，返回id
+static auto upload_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) {
+    check_logined();
 
+    auto trunk = proto::FileTrunk{};
+    if (!trunk.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        Log::error(std::format("req from {} invalid arguments", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "invalid arguments");
+    }
 
+    // 检查是否存在 blob
+    if (!conn->ext_data().contains("up_fbs") ||
+        !std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>>>(conn->ext_data().at("up_fbs"))
+             .contains(trunk.id())) {
+        Log::error(std::format("req from {} not uploadded meta", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "not uploadded meta");
+    }
 
+    auto blob =
+        std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>>>(conn->ext_data().at("up_fbs")).at(trunk.id());
 
-static const auto req_handles = std::map<Api, handle_t>{{Api::REGIST, regist},
-                                                        {Api::LOGIN, login},
-                                                        {Api::LS_ENTRY, ls_entry},
-                                                        {Api::MK_DIR, mk_dir},
-                                                        {Api::UPLOAD_META, upload_meta}};
+    // 检查是否重复上传
+    if (!blob->unused_trunks().contains(trunk.idx())) {
+        Log::error(std::format("req from {} trunk recv repeat", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "trunk recv repeat");
+    }
+
+    // 写入文件
+    if (!blob->write(trunk.data(), trunk.idx())) {
+        Log::error(std::format("req from {} write trunk failed", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "write trunk failed");
+    }
+
+    // 检查 md5 编码
+    if (blob->trunk_hash(trunk.idx()) != trunk.hash()) {
+        Log::error(std::format("req from {} invalid hash, '{}' not '{}'", conn->address(),
+                               blob->trunk_hash(trunk.idx()), trunk.hash()));
+        return create_pack_with_str_msg(r_pack->api, 0, "invalid hash");
+    } else {
+        blob->set_trunk_used(trunk.idx());
+    }
+
+    // 如果所有块写完，调用回调
+    if (blob->unused_trunks().empty()) {
+        auto s_pack = std::any_cast<std::map<uint64_t, std::function<std::shared_ptr<Pack>()>> &>(
+            conn->ext_data().at("up_fbs_cb"))[trunk.id()]();
+        std::any_cast<std::map<uint64_t, std::function<std::shared_ptr<Pack>()>> &>(conn->ext_data().at("up_fbs_cb"))
+            .erase(trunk.id());
+        return s_pack;
+    }
+
+    auto s_trunk = proto::FileTrunk{};
+    s_trunk.set_id(trunk.id());
+    s_trunk.set_idx(trunk.idx());
+    auto s_pack = create_pack_with_size(r_pack->api, 1, s_trunk.ByteSizeLong());
+    s_trunk.SerializeToArray(s_pack->data, s_pack->data_size);
+
+    Log::info(std::format("req from {}, upload trunk id:{} idx:{} finished", conn->address(), trunk.id(), trunk.idx()));
+    return s_pack;
+}
+
+static const auto req_handles =
+    std::map<Api, handle_t>{{Api::REGIST, regist},           {Api::LOGIN, login},
+                            {Api::LS_ENTRY, ls_entry},       {Api::MK_DIR, mk_dir},
+                            {Api::UPLOAD_META, upload_meta}, {Api::UPLOAD_TRUNK, upload_trunk}};
 
 #undef check_logined

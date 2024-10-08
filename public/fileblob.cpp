@@ -76,7 +76,7 @@ auto FileBlob::write(const std::string &data, uint64_t idx) -> bool {
 
     // 块哈希
     if (hash_state_ == HASH_ON_WRITE) {
-        trunks_hash_.clear();
+        // trunks_hash_.clear();
         auto md5 = CryptoPP::Weak1::MD5{};
         CryptoPP::StringSource(
             data, true,
@@ -108,12 +108,6 @@ auto FileBlob::file_hash() -> const std::string & {
     }
     return file_hash_;
 }
-
-auto FileBlob::trunk_hash(uint64_t idx) -> const std::string & { return trunks_hash_[idx]; }
-
-auto FileBlob::unused_trunks() -> const std::set<uint64_t> & { return unused_trunks_; }
-
-auto FileBlob::set_trunk_used(uint64_t idx) -> void { unused_trunks_.erase(idx); }
 
 auto FileBlob::init_unused_trunks() -> void {
     for (uint64_t i = 0; i < trunk_count_; ++i) {

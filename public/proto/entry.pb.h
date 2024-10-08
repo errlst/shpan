@@ -214,13 +214,13 @@ class EntryItem final :
   std::string* _internal_mutable_shared_link();
   public:
 
-  // int32 size = 1;
+  // uint64 size = 1;
   void clear_size();
-  int32_t size() const;
-  void set_size(int32_t value);
+  uint64_t size() const;
+  void set_size(uint64_t value);
   private:
-  int32_t _internal_size() const;
-  void _internal_set_size(int32_t value);
+  uint64_t _internal_size() const;
+  void _internal_set_size(uint64_t value);
   public:
 
   // bool is_dir = 2;
@@ -242,7 +242,7 @@ class EntryItem final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr path_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr shared_link_;
-    int32_t size_;
+    uint64_t size_;
     bool is_dir_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
@@ -417,22 +417,22 @@ class Entrys final :
 #endif  // __GNUC__
 // EntryItem
 
-// int32 size = 1;
+// uint64 size = 1;
 inline void EntryItem::clear_size() {
-  _impl_.size_ = 0;
+  _impl_.size_ = uint64_t{0u};
 }
-inline int32_t EntryItem::_internal_size() const {
+inline uint64_t EntryItem::_internal_size() const {
   return _impl_.size_;
 }
-inline int32_t EntryItem::size() const {
+inline uint64_t EntryItem::size() const {
   // @@protoc_insertion_point(field_get:proto.EntryItem.size)
   return _internal_size();
 }
-inline void EntryItem::_internal_set_size(int32_t value) {
+inline void EntryItem::_internal_set_size(uint64_t value) {
   
   _impl_.size_ = value;
 }
-inline void EntryItem::set_size(int32_t value) {
+inline void EntryItem::set_size(uint64_t value) {
   _internal_set_size(value);
   // @@protoc_insertion_point(field_set:proto.EntryItem.size)
 }

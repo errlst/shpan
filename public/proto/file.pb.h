@@ -48,9 +48,13 @@ namespace proto {
 class FileMeta;
 struct FileMetaDefaultTypeInternal;
 extern FileMetaDefaultTypeInternal _FileMeta_default_instance_;
+class FileTrunk;
+struct FileTrunkDefaultTypeInternal;
+extern FileTrunkDefaultTypeInternal _FileTrunk_default_instance_;
 }  // namespace proto
 PROTOBUF_NAMESPACE_OPEN
 template<> ::proto::FileMeta* Arena::CreateMaybeMessage<::proto::FileMeta>(Arena*);
+template<> ::proto::FileTrunk* Arena::CreateMaybeMessage<::proto::FileTrunk>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace proto {
 
@@ -177,11 +181,12 @@ class FileMeta final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kPathFieldNumber = 2,
-    kHashFieldNumber = 3,
-    kSizeFieldNumber = 1,
+    kPathFieldNumber = 3,
+    kHashFieldNumber = 4,
+    kIdFieldNumber = 1,
+    kSizeFieldNumber = 2,
   };
-  // string path = 2;
+  // string path = 3;
   void clear_path();
   const std::string& path() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -195,7 +200,7 @@ class FileMeta final :
   std::string* _internal_mutable_path();
   public:
 
-  // string hash = 3;
+  // string hash = 4;
   void clear_hash();
   const std::string& hash() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -209,7 +214,16 @@ class FileMeta final :
   std::string* _internal_mutable_hash();
   public:
 
-  // uint64 size = 1;
+  // uint64 id = 1;
+  void clear_id();
+  uint64_t id() const;
+  void set_id(uint64_t value);
+  private:
+  uint64_t _internal_id() const;
+  void _internal_set_id(uint64_t value);
+  public:
+
+  // uint64 size = 2;
   void clear_size();
   uint64_t size() const;
   void set_size(uint64_t value);
@@ -228,7 +242,199 @@ class FileMeta final :
   struct Impl_ {
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr path_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr hash_;
+    uint64_t id_;
     uint64_t size_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_file_2eproto;
+};
+// -------------------------------------------------------------------
+
+class FileTrunk final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proto.FileTrunk) */ {
+ public:
+  inline FileTrunk() : FileTrunk(nullptr) {}
+  ~FileTrunk() override;
+  explicit PROTOBUF_CONSTEXPR FileTrunk(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  FileTrunk(const FileTrunk& from);
+  FileTrunk(FileTrunk&& from) noexcept
+    : FileTrunk() {
+    *this = ::std::move(from);
+  }
+
+  inline FileTrunk& operator=(const FileTrunk& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline FileTrunk& operator=(FileTrunk&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const FileTrunk& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const FileTrunk* internal_default_instance() {
+    return reinterpret_cast<const FileTrunk*>(
+               &_FileTrunk_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(FileTrunk& a, FileTrunk& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(FileTrunk* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(FileTrunk* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  FileTrunk* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<FileTrunk>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const FileTrunk& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const FileTrunk& from) {
+    FileTrunk::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(FileTrunk* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proto.FileTrunk";
+  }
+  protected:
+  explicit FileTrunk(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kHashFieldNumber = 3,
+    kDataFieldNumber = 4,
+    kIdFieldNumber = 1,
+    kIdxFieldNumber = 2,
+  };
+  // string hash = 3;
+  void clear_hash();
+  const std::string& hash() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_hash(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_hash();
+  PROTOBUF_NODISCARD std::string* release_hash();
+  void set_allocated_hash(std::string* hash);
+  private:
+  const std::string& _internal_hash() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_hash(const std::string& value);
+  std::string* _internal_mutable_hash();
+  public:
+
+  // bytes data = 4;
+  void clear_data();
+  const std::string& data() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_data(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_data();
+  PROTOBUF_NODISCARD std::string* release_data();
+  void set_allocated_data(std::string* data);
+  private:
+  const std::string& _internal_data() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_data(const std::string& value);
+  std::string* _internal_mutable_data();
+  public:
+
+  // uint64 id = 1;
+  void clear_id();
+  uint64_t id() const;
+  void set_id(uint64_t value);
+  private:
+  uint64_t _internal_id() const;
+  void _internal_set_id(uint64_t value);
+  public:
+
+  // uint64 idx = 2;
+  void clear_idx();
+  uint64_t idx() const;
+  void set_idx(uint64_t value);
+  private:
+  uint64_t _internal_idx() const;
+  void _internal_set_idx(uint64_t value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proto.FileTrunk)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr hash_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
+    uint64_t id_;
+    uint64_t idx_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -245,7 +451,27 @@ class FileMeta final :
 #endif  // __GNUC__
 // FileMeta
 
-// uint64 size = 1;
+// uint64 id = 1;
+inline void FileMeta::clear_id() {
+  _impl_.id_ = uint64_t{0u};
+}
+inline uint64_t FileMeta::_internal_id() const {
+  return _impl_.id_;
+}
+inline uint64_t FileMeta::id() const {
+  // @@protoc_insertion_point(field_get:proto.FileMeta.id)
+  return _internal_id();
+}
+inline void FileMeta::_internal_set_id(uint64_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void FileMeta::set_id(uint64_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:proto.FileMeta.id)
+}
+
+// uint64 size = 2;
 inline void FileMeta::clear_size() {
   _impl_.size_ = uint64_t{0u};
 }
@@ -265,7 +491,7 @@ inline void FileMeta::set_size(uint64_t value) {
   // @@protoc_insertion_point(field_set:proto.FileMeta.size)
 }
 
-// string path = 2;
+// string path = 3;
 inline void FileMeta::clear_path() {
   _impl_.path_.ClearToEmpty();
 }
@@ -315,7 +541,7 @@ inline void FileMeta::set_allocated_path(std::string* path) {
   // @@protoc_insertion_point(field_set_allocated:proto.FileMeta.path)
 }
 
-// string hash = 3;
+// string hash = 4;
 inline void FileMeta::clear_hash() {
   _impl_.hash_.ClearToEmpty();
 }
@@ -365,9 +591,155 @@ inline void FileMeta::set_allocated_hash(std::string* hash) {
   // @@protoc_insertion_point(field_set_allocated:proto.FileMeta.hash)
 }
 
+// -------------------------------------------------------------------
+
+// FileTrunk
+
+// uint64 id = 1;
+inline void FileTrunk::clear_id() {
+  _impl_.id_ = uint64_t{0u};
+}
+inline uint64_t FileTrunk::_internal_id() const {
+  return _impl_.id_;
+}
+inline uint64_t FileTrunk::id() const {
+  // @@protoc_insertion_point(field_get:proto.FileTrunk.id)
+  return _internal_id();
+}
+inline void FileTrunk::_internal_set_id(uint64_t value) {
+  
+  _impl_.id_ = value;
+}
+inline void FileTrunk::set_id(uint64_t value) {
+  _internal_set_id(value);
+  // @@protoc_insertion_point(field_set:proto.FileTrunk.id)
+}
+
+// uint64 idx = 2;
+inline void FileTrunk::clear_idx() {
+  _impl_.idx_ = uint64_t{0u};
+}
+inline uint64_t FileTrunk::_internal_idx() const {
+  return _impl_.idx_;
+}
+inline uint64_t FileTrunk::idx() const {
+  // @@protoc_insertion_point(field_get:proto.FileTrunk.idx)
+  return _internal_idx();
+}
+inline void FileTrunk::_internal_set_idx(uint64_t value) {
+  
+  _impl_.idx_ = value;
+}
+inline void FileTrunk::set_idx(uint64_t value) {
+  _internal_set_idx(value);
+  // @@protoc_insertion_point(field_set:proto.FileTrunk.idx)
+}
+
+// string hash = 3;
+inline void FileTrunk::clear_hash() {
+  _impl_.hash_.ClearToEmpty();
+}
+inline const std::string& FileTrunk::hash() const {
+  // @@protoc_insertion_point(field_get:proto.FileTrunk.hash)
+  return _internal_hash();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileTrunk::set_hash(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.hash_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileTrunk.hash)
+}
+inline std::string* FileTrunk::mutable_hash() {
+  std::string* _s = _internal_mutable_hash();
+  // @@protoc_insertion_point(field_mutable:proto.FileTrunk.hash)
+  return _s;
+}
+inline const std::string& FileTrunk::_internal_hash() const {
+  return _impl_.hash_.Get();
+}
+inline void FileTrunk::_internal_set_hash(const std::string& value) {
+  
+  _impl_.hash_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileTrunk::_internal_mutable_hash() {
+  
+  return _impl_.hash_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileTrunk::release_hash() {
+  // @@protoc_insertion_point(field_release:proto.FileTrunk.hash)
+  return _impl_.hash_.Release();
+}
+inline void FileTrunk::set_allocated_hash(std::string* hash) {
+  if (hash != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.hash_.SetAllocated(hash, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.hash_.IsDefault()) {
+    _impl_.hash_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileTrunk.hash)
+}
+
+// bytes data = 4;
+inline void FileTrunk::clear_data() {
+  _impl_.data_.ClearToEmpty();
+}
+inline const std::string& FileTrunk::data() const {
+  // @@protoc_insertion_point(field_get:proto.FileTrunk.data)
+  return _internal_data();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileTrunk::set_data(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.data_.SetBytes(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileTrunk.data)
+}
+inline std::string* FileTrunk::mutable_data() {
+  std::string* _s = _internal_mutable_data();
+  // @@protoc_insertion_point(field_mutable:proto.FileTrunk.data)
+  return _s;
+}
+inline const std::string& FileTrunk::_internal_data() const {
+  return _impl_.data_.Get();
+}
+inline void FileTrunk::_internal_set_data(const std::string& value) {
+  
+  _impl_.data_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileTrunk::_internal_mutable_data() {
+  
+  return _impl_.data_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileTrunk::release_data() {
+  // @@protoc_insertion_point(field_release:proto.FileTrunk.data)
+  return _impl_.data_.Release();
+}
+inline void FileTrunk::set_allocated_data(std::string* data) {
+  if (data != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.data_.SetAllocated(data, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.data_.IsDefault()) {
+    _impl_.data_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileTrunk.data)
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 

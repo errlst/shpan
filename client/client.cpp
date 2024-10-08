@@ -26,9 +26,22 @@
 
 using req_handle_t = std::function<std::shared_ptr<Pack>(const std::vector<std::string> &)>;
 
-static auto cur_path = "";                                            // 当前路径
-static auto cur_usr = std::string{};                                  // 当前用户
-static auto up_fbs = std::map<uint64_t, std::shared_ptr<FileBlob>>{}; // 上传文件块
+static constexpr auto ip = "127.0.0.1";
+static constexpr auto port = (unsigned short){8080};
+static auto context = asio::io_context{};
+
+static auto sock = std::make_shared<asio::ip::tcp::socket>(context);
+static auto endpoint = asio::ip::tcp::endpoint{asio::ip::make_address_v4(ip), port};
+
+static auto cur_path = "";           // 当前路径
+static auto cur_usr = std::string{}; // 当前用户
+
+// 客户端单线程进行文件上传，且一次只会处理一个blob
+// 文件上传在新线程中单独进行，因此需要保护 up_fbs
+static auto cur_up_fb = std::pair<uint64_t, std::shared_ptr<FileBlob>>{}; // 正在上传的文件blob
+static auto up_fbs = std::map<uint64_t, std::shared_ptr<FileBlob>>{};     // 等待上传的文件blob
+static auto up_cbs = std::map<uint64_t, std::function<void()>>{};         // 上传元数据成功后的回调
+static auto up_mut = std::mutex{};
 
 auto regist(const std::vector<std::string> &args) -> std::shared_ptr<Pack> {
     check_unlogined();
@@ -117,11 +130,14 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
         return nullptr;
     }
 
-    auto file_blob = FileBlob{local_path, true};
+    auto blob = std::make_shared<FileBlob>(local_path, true);
+    up_cbs[blob->id()] = [=] { up_fbs[blob->id()] = blob; };
+
     auto file_meta = proto::FileMeta{};
+    file_meta.set_id(blob->id());
     file_meta.set_path(peer_path);
     file_meta.set_size(std::filesystem::file_size(local_path));
-    file_meta.set_hash(file_blob.file_hash());
+    file_meta.set_hash(blob->file_hash());
 
     auto s_pack = create_pack_with_size(Api::UPLOAD_META, true, file_meta.ByteSizeLong());
     if (!file_meta.SerializeToArray(s_pack->data, s_pack->data_size)) {
@@ -169,10 +185,10 @@ auto slove_input(const std::string &input) -> std::shared_ptr<Pack> {
 
 using recv_handle_t = std::function<void(std::shared_ptr<Pack>)>;
 
-auto recv_regist(std::shared_ptr<Pack> s_pack) -> void {
-    std::cout << std::string_view{s_pack->data, s_pack->data_size} << "\n";
+auto recv_regist(std::shared_ptr<Pack> r_pack) -> void {
+    std::cout << std::string_view{r_pack->data, r_pack->data_size} << "\n";
 
-    if (!s_pack->state) {
+    if (!r_pack->state) {
         cur_usr.clear();
         return;
     }
@@ -180,10 +196,10 @@ auto recv_regist(std::shared_ptr<Pack> s_pack) -> void {
     cur_path = "/";
 }
 
-auto recv_login(std::shared_ptr<Pack> s_pack) -> void {
-    std::cout << std::string_view{s_pack->data, s_pack->data_size} << "\n";
+auto recv_login(std::shared_ptr<Pack> r_pack) -> void {
+    std::cout << std::string_view{r_pack->data, r_pack->data_size} << "\n";
 
-    if (!s_pack->state) {
+    if (!r_pack->state) {
         cur_usr.clear();
         return;
     }
@@ -191,14 +207,14 @@ auto recv_login(std::shared_ptr<Pack> s_pack) -> void {
     cur_path = "/";
 }
 
-auto recv_ls(std::shared_ptr<Pack> s_pack) -> void {
-    if (!s_pack->state) {
+auto recv_ls(std::shared_ptr<Pack> r_pack) -> void {
+    if (!r_pack->state) {
         std::cout << "ls error\n";
         return;
     }
 
     auto entrys = proto::Entrys{};
-    if (!entrys.ParseFromArray(s_pack->data, s_pack->data_size)) {
+    if (!entrys.ParseFromArray(r_pack->data, r_pack->data_size)) {
         std::cout << "invalid data from server\n";
         return;
     }
@@ -209,17 +225,118 @@ auto recv_ls(std::shared_ptr<Pack> s_pack) -> void {
     }
 }
 
-auto recv_mkdir(std::shared_ptr<Pack> s_pack) -> void {
-    std::cout << std::string_view{s_pack->data, s_pack->data_size} << "\n";
+auto recv_mkdir(std::shared_ptr<Pack> r_pack) -> void {
+    std::cout << std::string_view{r_pack->data, r_pack->data_size} << "\n";
 }
 
-auto recv_upload_meta(std::shared_ptr<Pack> s_pack) -> void {}
+auto recv_upload_meta(std::shared_ptr<Pack> r_pack) -> void {
+    if (r_pack->data_size != sizeof(uint64_t)) {
+        Log::error("recv invalid");
+        std::cout << "recv invalid\n";
+        return;
+    }
+    auto id = *reinterpret_cast<uint64_t *>(r_pack->data);
+
+    if (r_pack->state == 0) {
+        Log::error(std::format("upload meta {} invalid", id));
+        return;
+    }
+
+    if (r_pack->state == 1) {
+        Log::info(std::format("upload meta {} success", id));
+        {
+            auto lock = std::lock_guard{up_mut};
+            up_cbs[id]();
+            up_cbs.erase(id);
+        }
+        // 如果当前没有在上传，新建上传线程
+        if (cur_up_fb.second == nullptr) {
+            std::thread{[] {
+                while (true) {
+                    {
+                        auto lock = std::lock_guard{up_mut};
+                        if (up_fbs.size() == 0) {
+                            return;
+                        }
+                        cur_up_fb = *up_fbs.begin();
+                        up_fbs.erase(up_fbs.begin());
+                    }
+
+                    //
+                    auto &blob = cur_up_fb.second;
+                    while (!blob->unused_trunks().empty()) {
+                        for (auto &idx : blob->unused_trunks()) {
+                            auto trunk = blob->read(idx);
+                            if (trunk.has_value()) {
+                                auto pb_trunk = proto::FileTrunk{};
+                                pb_trunk.set_id(cur_up_fb.first);
+                                pb_trunk.set_idx(idx);
+                                pb_trunk.set_hash(blob->trunk_hash(idx));
+                                pb_trunk.set_data(std::move(trunk.value()));
+
+                                auto s_pack = create_pack_with_size(Api::UPLOAD_TRUNK, 0, pb_trunk.ByteSizeLong());
+                                pb_trunk.SerializeToArray(s_pack->data, s_pack->data_size);
+                                asio::write(*sock, asio::const_buffer(s_pack.get(), s_pack->data_size + sizeof(Pack)));
+                                Log::info(std::format("send trunk id:{} idx{}", cur_up_fb.first, idx));
+
+                                std::this_thread::sleep_for(std::chrono::seconds{1});
+                            } else {
+                                Log::error(std::format("read blob failed id:{} idx:{}", cur_up_fb.first, idx));
+                            }
+                        }
+                    }
+                }
+            }}.detach();
+        }
+
+        return;
+    }
+
+    if (r_pack->state == 2) {
+        Log::info(std::format("upload flash {}", id));
+        return;
+    }
+
+    if (r_pack->state == 3) {
+        Log::info(std::format("path is dir {}", id));
+        return;
+    }
+
+    std::unreachable();
+}
+
+auto recv_upload_trunk(std::shared_ptr<Pack> r_pack) -> void {
+    if (cur_up_fb.second == nullptr) {
+        return;
+    }
+
+    if (r_pack->state == 0) {
+        Log::error(std::string{r_pack->data, r_pack->data_size});
+        return;
+    }
+
+    if (r_pack->state == 2) {
+        cur_up_fb.second->clear_unused_trunks();
+        Log::info(std::format("upload finished"));
+        return;
+    }
+
+    auto trunk = proto::FileTrunk{};
+    if (!trunk.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        Log::error("parse trunk failed");
+        return;
+    }
+
+    cur_up_fb.second->set_trunk_used(trunk.idx());
+    Log::info(std::format("upload trunk id:{}, idx:{} success", trunk.id(), trunk.idx()));
+}
 
 const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist},
                                                        {Api::LOGIN, recv_login},
                                                        {Api::LS_ENTRY, recv_ls},
                                                        {Api::MK_DIR, recv_mkdir},
-                                                       {Api::UPLOAD_META, recv_upload_meta}};
+                                                       {Api::UPLOAD_META, recv_upload_meta},
+                                                       {Api::UPLOAD_TRUNK, recv_upload_trunk}};
 
 auto slove_recv(std::shared_ptr<asio::ip::tcp::socket> sock) -> void {
     try {
@@ -246,12 +363,6 @@ auto main() -> int {
     Log::init("client");
     Log::setLevel(Log::Level::DEBUG);
 
-    auto ip = "127.0.0.1";
-    auto port = (unsigned short){8080};
-    auto context = asio::io_context{};
-
-    auto sock = std::make_shared<asio::ip::tcp::socket>(context);
-    auto endpoint = asio::ip::tcp::endpoint{asio::ip::make_address_v4(ip), port};
     sock->connect(endpoint);
     Log::info("Connected to server");
 

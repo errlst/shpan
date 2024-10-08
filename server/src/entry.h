@@ -6,11 +6,11 @@
 
 class Entry {
   private:
-    Entry(uint64_t id, uint64_t ref_id, const std::string &path, const std::string &shared_link)
-        : id_(id), ref_id_(ref_id), path_(path), shared_link_(shared_link) {}
+    Entry(uint64_t id, uint64_t ref_id, uint64_t file_size, const std::string &path, const std::string &shared_link)
+        : id_(id), ref_id_(ref_id), file_size_{file_size}, path_(path), shared_link_(shared_link) {}
 
   public:
-    static auto create(const std::string &path, uint64_t ref_id = 0) -> std::expected<Entry, std::string>;
+    static auto create(uint64_t file_size, const std::string &path, uint64_t ref_id = 0) -> std::expected<Entry, std::string>;
 
     static auto find(uint64_t id) -> std::expected<Entry, std::string>;
 
@@ -33,6 +33,8 @@ class Entry {
 
     auto ref_id() const -> uint64_t { return ref_id_; }
 
+    auto file_size() const -> uint64_t { return file_size_; }
+
     auto path() const -> const std::string & { return path_; }
 
     auto shared_link() const -> const std::string & { return shared_link_; }
@@ -42,6 +44,7 @@ class Entry {
   private:
     uint64_t id_;
     uint64_t ref_id_;
+    uint64_t file_size_;
     std::string path_;
     std::string shared_link_;
 };

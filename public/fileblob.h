@@ -40,15 +40,18 @@ class FileBlob {
 
     auto valid() -> bool;
 
+    // 完整文件哈希
     auto file_hash() -> const std::string &;
 
-    auto trunk_hash(uint64_t idx) -> const std::string &;
+    // 文件块哈希
+    auto trunk_hash(uint64_t idx) -> const std::string & { return trunks_hash_[idx]; }
 
-    auto unused_trunks() -> const std::set<uint64_t> &;
+    // 未使用过的块
+    auto unused_trunks() -> std::set<uint64_t> { return unused_trunks_; }
 
-    auto used_trunks() -> const std::set<uint64_t> &;
+    auto set_trunk_used(uint64_t idx) -> void { unused_trunks_.erase(idx); }
 
-    auto set_trunk_used(uint64_t idx) -> void;
+    auto clear_unused_trunks() -> void { unused_trunks_.clear(); }
 
   private:
     auto init_unused_trunks() -> void;
@@ -72,5 +75,5 @@ class FileBlob {
 
   private:
     inline static uint64_t NEXT_ID = 0;
-    inline static constexpr uint64_t TRUNK_SIZE = 1024 * 1024; // 每个文件块大小
+    inline static constexpr uint64_t TRUNK_SIZE = 1024 * 4; // 每个文件块大小
 };

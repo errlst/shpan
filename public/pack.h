@@ -5,11 +5,12 @@
 #include <utility>
 
 enum class Api : uint8_t {
-    REGIST,      // 注册
-    LOGIN,       // 登录
-    LS_ENTRY,    // 查看条目
-    MK_DIR,      // 创建目录
-    UPLOAD_META, // 文件元数据
+    REGIST,       // 注册
+    LOGIN,        // 登录
+    LS_ENTRY,     // 查看条目
+    MK_DIR,       // 创建目录
+    UPLOAD_META,  // 文件元数据
+    UPLOAD_TRUNK, // 文件块数据
 
     MAX_INVALID
 };
@@ -26,6 +27,8 @@ static auto api_to_string(Api api) -> std::string {
         return "mkdir";
     case Api::UPLOAD_META:
         return "upload_meta";
+    case Api::UPLOAD_TRUNK:
+        return "upload_trunk";
     default:
         return "invalid";
     }
@@ -49,7 +52,7 @@ static auto create_pack_with_meta(Pack meta) -> std::shared_ptr<Pack> {
     return std::shared_ptr<Pack>{p, [](Pack *p) { free(p); }};
 }
 
-static auto create_pack_with_size(Api api, bool state, uint16_t data_size) -> std::shared_ptr<Pack> {
+static auto create_pack_with_size(Api api, uint8_t state, uint16_t data_size) -> std::shared_ptr<Pack> {
     if (api > Api::MAX_INVALID) {
         return nullptr;
     }
@@ -60,7 +63,7 @@ static auto create_pack_with_size(Api api, bool state, uint16_t data_size) -> st
     return std::shared_ptr<Pack>{p, [](Pack *p) { free(p); }};
 }
 
-static auto create_pack_with_str_msg(Api api, bool state, const std::string &msg) -> std::shared_ptr<Pack> {
+static auto create_pack_with_str_msg(Api api, uint8_t state, const std::string &msg) -> std::shared_ptr<Pack> {
     auto p = (Pack *)malloc(msg.size() + sizeof(Pack));
     p->api = api;
     p->state = state;
@@ -69,7 +72,7 @@ static auto create_pack_with_str_msg(Api api, bool state, const std::string &msg
     return std::shared_ptr<Pack>{p, [](Pack *p) { free(p); }};
 }
 
-static auto create_pack_with_num_msg(Api api, bool state, uint64_t msg) -> std::shared_ptr<Pack> {
+static auto create_pack_with_num_msg(Api api, uint8_t state, uint64_t msg) -> std::shared_ptr<Pack> {
     auto p = (Pack *)malloc(sizeof(msg) + sizeof(Pack));
     p->api = api;
     p->state = state;

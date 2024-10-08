@@ -25,7 +25,7 @@ PROTOBUF_CONSTEXPR EntryItem::EntryItem(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.shared_link_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.size_)*/0
+  , /*decltype(_impl_.size_)*/uint64_t{0u}
   , /*decltype(_impl_.is_dir_)*/false
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct EntryItemDefaultTypeInternal {
@@ -86,7 +86,7 @@ static const ::_pb::Message* const file_default_instances[] = {
 
 const char descriptor_table_protodef_entry_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\013entry.proto\022\005proto\"L\n\tEntryItem\022\014\n\004siz"
-  "e\030\001 \001(\005\022\016\n\006is_dir\030\002 \001(\010\022\014\n\004path\030\003 \001(\t\022\023\n"
+  "e\030\001 \001(\004\022\016\n\006is_dir\030\002 \001(\010\022\014\n\004path\030\003 \001(\t\022\023\n"
   "\013shared_link\030\004 \001(\t\"*\n\006Entrys\022 \n\006entrys\030\001"
   " \003(\0132\020.proto.EntryItemb\006proto3"
   ;
@@ -159,7 +159,7 @@ inline void EntryItem::SharedCtor(
   new (&_impl_) Impl_{
       decltype(_impl_.path_){}
     , decltype(_impl_.shared_link_){}
-    , decltype(_impl_.size_){0}
+    , decltype(_impl_.size_){uint64_t{0u}}
     , decltype(_impl_.is_dir_){false}
     , /*decltype(_impl_._cached_size_)*/{}
   };
@@ -212,10 +212,10 @@ const char* EntryItem::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
     uint32_t tag;
     ptr = ::_pbi::ReadTag(ptr, &tag);
     switch (tag >> 3) {
-      // int32 size = 1;
+      // uint64 size = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 8)) {
-          _impl_.size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint32(&ptr);
+          _impl_.size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
         } else
           goto handle_unusual;
@@ -277,10 +277,10 @@ uint8_t* EntryItem::_InternalSerialize(
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // int32 size = 1;
+  // uint64 size = 1;
   if (this->_internal_size() != 0) {
     target = stream->EnsureSpace(target);
-    target = ::_pbi::WireFormatLite::WriteInt32ToArray(1, this->_internal_size(), target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(1, this->_internal_size(), target);
   }
 
   // bool is_dir = 2;
@@ -339,9 +339,9 @@ size_t EntryItem::ByteSizeLong() const {
         this->_internal_shared_link());
   }
 
-  // int32 size = 1;
+  // uint64 size = 1;
   if (this->_internal_size() != 0) {
-    total_size += ::_pbi::WireFormatLite::Int32SizePlusOne(this->_internal_size());
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_size());
   }
 
   // bool is_dir = 2;
