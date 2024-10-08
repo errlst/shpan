@@ -43,6 +43,12 @@ static auto up_fbs = std::map<uint64_t, std::shared_ptr<FileBlob>>{};     // 等
 static auto up_cbs = std::map<uint64_t, std::function<void()>>{};         // 上传元数据成功后的回调
 static auto up_mut = std::mutex{};
 
+//
+static auto down_meta_cbs = std::map<std::string, std::function<void(proto::FileMeta)>>{}; // 下载元数据成功后的回调
+static auto cur_down_fb = std::pair<uint64_t, std::shared_ptr<FileBlob>>{};
+static auto down_fbs = std::map<uint64_t, std::shared_ptr<FileBlob>>{};
+static auto down_mut = std::mutex{};
+
 auto regist(const std::vector<std::string> &args) -> std::shared_ptr<Pack> {
     check_unlogined();
 
@@ -122,7 +128,7 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
         return nullptr;
     }
 
-    auto peer_path = args[1];
+    auto usr_path = args[1];
     auto local_path = args[2];
 
     if (!std::filesystem::exists(local_path)) {
@@ -135,7 +141,7 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
 
     auto file_meta = proto::FileMeta{};
     file_meta.set_id(blob->id());
-    file_meta.set_path(peer_path);
+    file_meta.set_path(usr_path);
     file_meta.set_size(std::filesystem::file_size(local_path));
     file_meta.set_hash(blob->file_hash());
 
@@ -149,8 +155,35 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
     return s_pack;
 }
 
-const auto reqs = std::map<std::string, req_handle_t>{{"regist", regist}, {"login", login},  {"pwd", pwd},
-                                                      {"ls", ls},         {"mkdir", mk_dir}, {"upload", upload_meta}};
+auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> {
+    if (args.size() != 3) {
+        std::cout << "invalid input\n";
+        return nullptr;
+    }
+
+    auto usr_path = args[1];
+    auto local_path = std::filesystem::path{args[2]};
+    if (!local_path.has_parent_path() || !std::filesystem::exists(local_path.parent_path())) {
+        std::cout << "invalid local path";
+        return nullptr;
+    }
+
+    down_meta_cbs[usr_path] = [=](proto::FileMeta meta) {
+        Log::debug("down meta cb call");
+        auto blob = std::make_shared<FileBlob>(local_path.string(), meta.size(), true);
+        // 新建线程开始上传文件块
+        if (down_fbs.empty()) {
+            down_fbs.emplace(meta.id(), blob);
+            std::thread{[] { Log::debug("start download trunk"); }}.detach();
+        }
+    };
+
+    return create_pack_with_str_msg(Api::DOWNLOAD_META, 0, usr_path);
+}
+
+const auto reqs = std::map<std::string, req_handle_t>{
+    {"regist", regist},      {"login", login},           {"pwd", pwd}, {"ls", ls}, {"mkdir", mk_dir},
+    {"upload", upload_meta}, {"download", download_meta}};
 
 auto slove_input(const std::string &input) -> std::shared_ptr<Pack> {
     if (input.empty()) {
@@ -330,13 +363,29 @@ auto recv_upload_trunk(std::shared_ptr<Pack> r_pack) -> void {
     cur_up_fb.second->set_trunk_used(trunk.idx());
     Log::info(std::format("upload trunk id:{}, idx:{} success", trunk.id(), trunk.idx()));
 }
+auto recv_download_meta(std::shared_ptr<Pack> r_pack) -> void {
+    if (r_pack->state == 0) {
+        Log::error(std::format("download meta failed : {}", std::string_view{r_pack->data, r_pack->data_size}));
+        return;
+    }
+
+    auto meta = proto::FileMeta{};
+    if (!meta.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        Log::error("parse filemeta failed");
+        return;
+    }
+
+    Log::info(std::format("download meta success, {} {} {} {}", meta.id(), meta.size(), meta.path(), meta.hash()));
+    down_meta_cbs[meta.path()](meta);
+}
 
 const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist},
                                                        {Api::LOGIN, recv_login},
                                                        {Api::LS_ENTRY, recv_ls},
                                                        {Api::MK_DIR, recv_mkdir},
                                                        {Api::UPLOAD_META, recv_upload_meta},
-                                                       {Api::UPLOAD_TRUNK, recv_upload_trunk}};
+                                                       {Api::UPLOAD_TRUNK, recv_upload_trunk},
+                                                       {Api::DOWNLOAD_META, recv_download_meta}};
 
 auto slove_recv(std::shared_ptr<asio::ip::tcp::socket> sock) -> void {
     try {

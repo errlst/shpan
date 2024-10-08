@@ -284,7 +284,7 @@ static auto upload_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> 
 //  0 上传失败，返回错误消息
 //  1 当前块上传成功，返回 trunk（只有id和idx有效
 //  2 所有块上传完成，返回id
-static auto upload_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) {
+static auto upload_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) -> std::shared_ptr<Pack> {
     check_logined();
 
     auto trunk = proto::FileTrunk{};
@@ -344,9 +344,56 @@ static auto upload_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pack>
     return s_pack;
 }
 
-static const auto req_handles =
-    std::map<Api, handle_t>{{Api::REGIST, regist},           {Api::LOGIN, login},
-                            {Api::LS_ENTRY, ls_entry},       {Api::MK_DIR, mk_dir},
-                            {Api::UPLOAD_META, upload_meta}, {Api::UPLOAD_TRUNK, upload_trunk}};
+// 下载文件元数据
+// 参数：绝对路径
+static auto download_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) -> std::shared_ptr<Pack> {
+    check_logined();
+    auto cur_usr = std::any_cast<User>(conn->ext_data().at("user")).email();
+    auto usr_path = cur_usr + std::string{r_pack->data, r_pack->data_size};
+
+    auto f_entry = Entry::find(usr_path);
+    if (!f_entry.has_value()) {
+        Log::error(std::format("req from {}, invalid path {}", conn->address(),
+                               std::string_view{r_pack->data, r_pack->data_size}));
+        return create_pack_with_str_msg(Api::UPLOAD_META, 0, "invalid path");
+    }
+    if (f_entry->is_directory()) {
+        Log::error(std::format("req from {}, path is dir {}", conn->address(),
+                               std::string_view{r_pack->data, r_pack->data_size}));
+        return create_pack_with_str_msg(Api::UPLOAD_META, 0, "path is dir");
+    }
+
+    auto f_ref = FileRef::find(f_entry->ref_id());
+    if (!f_ref.has_value()) {
+        Log::error(std::format("req from {}, file ref invalid {}", conn->address(),
+                               std::string_view{r_pack->data, r_pack->data_size}));
+        return create_pack_with_str_msg(Api::UPLOAD_META, 0, "file ref invalid");
+    }
+
+    if (!conn->ext_data().contains("down_fbs")) {
+        conn->ext_data()["down_fbs"] = std::map<uint64_t, std::shared_ptr<FileBlob>>{};
+    }
+    auto blob = std::make_shared<FileBlob>(f_ref->file_path(), true);
+    std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data()["down_fbs"])[blob->id()] = blob;
+
+    auto meta = proto::FileMeta{};
+    meta.set_id(blob->id());
+    meta.set_size(std::filesystem::file_size(f_ref->file_path()));
+    meta.set_path(std::string{r_pack->data, r_pack->data_size});
+    meta.set_hash(blob->file_hash());
+    auto s_pack = create_pack_with_size(Api::DOWNLOAD_META, 1, meta.ByteSizeLong());
+    meta.SerializeToArray(s_pack->data, s_pack->data_size);
+    Log::info(std::format("req from {} down meta success, {} {} {} {}", conn->address(), meta.id(), meta.size(),
+                          meta.path(), meta.hash()));
+    return s_pack;
+}
+
+static const auto req_handles = std::map<Api, handle_t>{{Api::REGIST, regist},
+                                                        {Api::LOGIN, login},
+                                                        {Api::LS_ENTRY, ls_entry},
+                                                        {Api::MK_DIR, mk_dir},
+                                                        {Api::UPLOAD_META, upload_meta},
+                                                        {Api::UPLOAD_TRUNK, upload_trunk},
+                                                        {Api::DOWNLOAD_META, download_meta}};
 
 #undef check_logined

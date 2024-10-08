@@ -11,6 +11,8 @@ enum class Api : uint8_t {
     MK_DIR,       // 创建目录
     UPLOAD_META,  // 文件元数据
     UPLOAD_TRUNK, // 文件块数据
+    DOWNLOAD_META,
+    DOWNLOAD_TRUNK,
 
     MAX_INVALID
 };
@@ -29,6 +31,10 @@ static auto api_to_string(Api api) -> std::string {
         return "upload_meta";
     case Api::UPLOAD_TRUNK:
         return "upload_trunk";
+    case Api::DOWNLOAD_META:
+        return "download_meta";
+    case Api::DOWNLOAD_TRUNK:
+        return "download_trunk";
     default:
         return "invalid";
     }
