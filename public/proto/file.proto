@@ -14,6 +14,5 @@ message FileMeta {
 message FileTrunk {
     uint64 id = 1;  // 所属 fileblob 的id
     uint64 idx = 2; // 当前块索引
-    string hash = 3;
-    bytes data = 4;
+    bytes data = 3;
 };

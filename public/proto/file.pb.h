@@ -372,26 +372,11 @@ class FileTrunk final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kHashFieldNumber = 3,
-    kDataFieldNumber = 4,
+    kDataFieldNumber = 3,
     kIdFieldNumber = 1,
     kIdxFieldNumber = 2,
   };
-  // string hash = 3;
-  void clear_hash();
-  const std::string& hash() const;
-  template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_hash(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_hash();
-  PROTOBUF_NODISCARD std::string* release_hash();
-  void set_allocated_hash(std::string* hash);
-  private:
-  const std::string& _internal_hash() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_hash(const std::string& value);
-  std::string* _internal_mutable_hash();
-  public:
-
-  // bytes data = 4;
+  // bytes data = 3;
   void clear_data();
   const std::string& data() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -431,7 +416,6 @@ class FileTrunk final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr hash_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr data_;
     uint64_t id_;
     uint64_t idx_;
@@ -635,57 +619,7 @@ inline void FileTrunk::set_idx(uint64_t value) {
   // @@protoc_insertion_point(field_set:proto.FileTrunk.idx)
 }
 
-// string hash = 3;
-inline void FileTrunk::clear_hash() {
-  _impl_.hash_.ClearToEmpty();
-}
-inline const std::string& FileTrunk::hash() const {
-  // @@protoc_insertion_point(field_get:proto.FileTrunk.hash)
-  return _internal_hash();
-}
-template <typename ArgT0, typename... ArgT>
-inline PROTOBUF_ALWAYS_INLINE
-void FileTrunk::set_hash(ArgT0&& arg0, ArgT... args) {
- 
- _impl_.hash_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proto.FileTrunk.hash)
-}
-inline std::string* FileTrunk::mutable_hash() {
-  std::string* _s = _internal_mutable_hash();
-  // @@protoc_insertion_point(field_mutable:proto.FileTrunk.hash)
-  return _s;
-}
-inline const std::string& FileTrunk::_internal_hash() const {
-  return _impl_.hash_.Get();
-}
-inline void FileTrunk::_internal_set_hash(const std::string& value) {
-  
-  _impl_.hash_.Set(value, GetArenaForAllocation());
-}
-inline std::string* FileTrunk::_internal_mutable_hash() {
-  
-  return _impl_.hash_.Mutable(GetArenaForAllocation());
-}
-inline std::string* FileTrunk::release_hash() {
-  // @@protoc_insertion_point(field_release:proto.FileTrunk.hash)
-  return _impl_.hash_.Release();
-}
-inline void FileTrunk::set_allocated_hash(std::string* hash) {
-  if (hash != nullptr) {
-    
-  } else {
-    
-  }
-  _impl_.hash_.SetAllocated(hash, GetArenaForAllocation());
-#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.hash_.IsDefault()) {
-    _impl_.hash_.Set("", GetArenaForAllocation());
-  }
-#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proto.FileTrunk.hash)
-}
-
-// bytes data = 4;
+// bytes data = 3;
 inline void FileTrunk::clear_data() {
   _impl_.data_.ClearToEmpty();
 }

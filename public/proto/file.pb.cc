@@ -39,8 +39,7 @@ struct FileMetaDefaultTypeInternal {
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileMetaDefaultTypeInternal _FileMeta_default_instance_;
 PROTOBUF_CONSTEXPR FileTrunk::FileTrunk(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.hash_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
-  , /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.id_)*/uint64_t{0u}
   , /*decltype(_impl_.idx_)*/uint64_t{0u}
   , /*decltype(_impl_._cached_size_)*/{}} {}
@@ -77,7 +76,6 @@ const uint32_t TableStruct_file_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::proto::FileTrunk, _impl_.id_),
   PROTOBUF_FIELD_OFFSET(::proto::FileTrunk, _impl_.idx_),
-  PROTOBUF_FIELD_OFFSET(::proto::FileTrunk, _impl_.hash_),
   PROTOBUF_FIELD_OFFSET(::proto::FileTrunk, _impl_.data_),
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -93,12 +91,12 @@ static const ::_pb::Message* const file_default_instances[] = {
 const char descriptor_table_protodef_file_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\nfile.proto\022\005proto\"@\n\010FileMeta\022\n\n\002id\030\001 "
   "\001(\004\022\014\n\004size\030\002 \001(\004\022\014\n\004path\030\003 \001(\t\022\014\n\004hash\030"
-  "\004 \001(\t\"@\n\tFileTrunk\022\n\n\002id\030\001 \001(\004\022\013\n\003idx\030\002 "
-  "\001(\004\022\014\n\004hash\030\003 \001(\t\022\014\n\004data\030\004 \001(\014b\006proto3"
+  "\004 \001(\t\"2\n\tFileTrunk\022\n\n\002id\030\001 \001(\004\022\013\n\003idx\030\002 "
+  "\001(\004\022\014\n\004data\030\003 \001(\014b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_file_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_file_2eproto = {
-    false, false, 159, descriptor_table_protodef_file_2eproto,
+    false, false, 145, descriptor_table_protodef_file_2eproto,
     "file.proto",
     &descriptor_table_file_2eproto_once, nullptr, 0, 2,
     schemas, file_default_instances, TableStruct_file_2eproto::offsets,
@@ -442,21 +440,12 @@ FileTrunk::FileTrunk(const FileTrunk& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   FileTrunk* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.hash_){}
-    , decltype(_impl_.data_){}
+      decltype(_impl_.data_){}
     , decltype(_impl_.id_){}
     , decltype(_impl_.idx_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.hash_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.hash_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_hash().empty()) {
-    _this->_impl_.hash_.Set(from._internal_hash(), 
-      _this->GetArenaForAllocation());
-  }
   _impl_.data_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.data_.Set("", GetArenaForAllocation());
@@ -476,16 +465,11 @@ inline void FileTrunk::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.hash_){}
-    , decltype(_impl_.data_){}
+      decltype(_impl_.data_){}
     , decltype(_impl_.id_){uint64_t{0u}}
     , decltype(_impl_.idx_){uint64_t{0u}}
     , /*decltype(_impl_._cached_size_)*/{}
   };
-  _impl_.hash_.InitDefault();
-  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.hash_.Set("", GetArenaForAllocation());
-  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   _impl_.data_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
     _impl_.data_.Set("", GetArenaForAllocation());
@@ -503,7 +487,6 @@ FileTrunk::~FileTrunk() {
 
 inline void FileTrunk::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.hash_.Destroy();
   _impl_.data_.Destroy();
 }
 
@@ -517,7 +500,6 @@ void FileTrunk::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.hash_.ClearToEmpty();
   _impl_.data_.ClearToEmpty();
   ::memset(&_impl_.id_, 0, static_cast<size_t>(
       reinterpret_cast<char*>(&_impl_.idx_) -
@@ -547,19 +529,9 @@ const char* FileTrunk::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx
         } else
           goto handle_unusual;
         continue;
-      // string hash = 3;
+      // bytes data = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          auto str = _internal_mutable_hash();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
-          CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proto.FileTrunk.hash"));
-        } else
-          goto handle_unusual;
-        continue;
-      // bytes data = 4;
-      case 4:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
           auto str = _internal_mutable_data();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
@@ -607,20 +579,10 @@ uint8_t* FileTrunk::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_idx(), target);
   }
 
-  // string hash = 3;
-  if (!this->_internal_hash().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_hash().data(), static_cast<int>(this->_internal_hash().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proto.FileTrunk.hash");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_hash(), target);
-  }
-
-  // bytes data = 4;
+  // bytes data = 3;
   if (!this->_internal_data().empty()) {
     target = stream->WriteBytesMaybeAliased(
-        4, this->_internal_data(), target);
+        3, this->_internal_data(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -639,14 +601,7 @@ size_t FileTrunk::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string hash = 3;
-  if (!this->_internal_hash().empty()) {
-    total_size += 1 +
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_hash());
-  }
-
-  // bytes data = 4;
+  // bytes data = 3;
   if (!this->_internal_data().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::BytesSize(
@@ -681,9 +636,6 @@ void FileTrunk::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROT
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from._internal_hash().empty()) {
-    _this->_internal_set_hash(from._internal_hash());
-  }
   if (!from._internal_data().empty()) {
     _this->_internal_set_data(from._internal_data());
   }
@@ -712,10 +664,6 @@ void FileTrunk::InternalSwap(FileTrunk* other) {
   auto* lhs_arena = GetArenaForAllocation();
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
-  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.hash_, lhs_arena,
-      &other->_impl_.hash_, rhs_arena
-  );
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.data_, lhs_arena,
       &other->_impl_.data_, rhs_arena

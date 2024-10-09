@@ -136,7 +136,7 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
         return nullptr;
     }
 
-    auto blob = std::make_shared<FileBlob>(local_path, true);
+    auto blob = std::make_shared<FileBlob>(local_path);
     up_cbs[blob->id()] = [=] { up_fbs[blob->id()] = blob; };
 
     auto file_meta = proto::FileMeta{};
@@ -180,7 +180,7 @@ auto start_download_trunk() -> void {
                         asio::write(*sock, asio::const_buffer(s_pack.get(), s_pack->data_size + sizeof(Pack)));
                         Log::debug(std::format("req down trunk id:{} idx:{}", cur_down_fb.first, idx));
                     }
-                    std::this_thread::sleep_for(std::chrono::seconds{1});
+                    std::this_thread::sleep_for(std::chrono::seconds{cur_down_fb.second->unused_trunks().size()});
                 }
             }
         }}.detach();
@@ -202,7 +202,7 @@ auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack
 
     down_meta_cbs[usr_path] = [=](proto::FileMeta meta) {
         Log::debug("down meta cb call");
-        auto blob = std::make_shared<FileBlob>(local_path.string(), meta.size(), true);
+        auto blob = std::make_shared<FileBlob>(local_path.string(), meta.size());
         {
             auto lock = std::lock_guard{down_mut};
             down_fbs.emplace(meta.id(), blob);
@@ -320,7 +320,7 @@ auto start_upload_trunk() -> void {
                             auto pb_trunk = proto::FileTrunk{};
                             pb_trunk.set_id(cur_up_fb.first);
                             pb_trunk.set_idx(idx);
-                            pb_trunk.set_hash(blob->trunk_hash(idx));
+                            // pb_trunk.set_hash(blob->trunk_hash(idx));
                             pb_trunk.set_data(std::move(trunk.value()));
 
                             auto s_pack = create_pack_with_size(Api::UPLOAD_TRUNK, 0, pb_trunk.ByteSizeLong());
@@ -331,7 +331,7 @@ auto start_upload_trunk() -> void {
                             Log::error(std::format("read blob failed id:{} idx:{}", cur_up_fb.first, idx));
                         }
                     }
-                    // std::this_thread::sleep_for(std::chrono::seconds{1});
+                    std::this_thread::sleep_for(std::chrono::milliseconds{blob->unused_trunks().size()});
                 }
             }
         }}.detach();
@@ -437,12 +437,6 @@ auto recv_download_trunk(std::shared_ptr<Pack> r_pack) -> void {
     }
 
     cur_down_fb.second->write(trunk.data(), trunk.idx());
-    if (cur_down_fb.second->trunk_hash(trunk.idx()) != trunk.hash()) {
-        Log::error(std::format("trunk id:{} hash:{} idx:{} hash errored {}", trunk.id(), trunk.hash(), trunk.idx(),
-                               cur_down_fb.second->trunk_hash(trunk.idx())));
-        return;
-    }
-
     cur_down_fb.second->set_trunk_used(trunk.idx());
     Log::info(std::format("download trunk id:{} idx:{}", trunk.id(), trunk.idx()));
     if (cur_down_fb.second->unused_trunks().empty()) {

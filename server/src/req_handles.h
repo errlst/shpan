@@ -243,7 +243,7 @@ static auto upload_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> 
         conn->ext_data()["up_fbs_cb"] =
             std::map<uint64_t, std::function<std::shared_ptr<Pack>()>>{}; // blob上传完成后的回调
     }
-    auto blob = std::make_shared<FileBlob>(raw_path, file_meta.size(), true);
+    auto blob = std::make_shared<FileBlob>(raw_path, file_meta.size());
     std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data().at("up_fbs"))[file_meta.id()] =
         blob;
     std::any_cast<std::map<uint64_t, std::function<std::shared_ptr<Pack>()>> &>(
@@ -316,14 +316,7 @@ static auto upload_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pack>
         return create_pack_with_str_msg(r_pack->api, 0, "write trunk failed");
     }
 
-    // 检查 md5 编码
-    if (blob->trunk_hash(trunk.idx()) != trunk.hash()) {
-        Log::error(std::format("req from {} invalid hash, '{}' not '{}'", conn->address(),
-                               blob->trunk_hash(trunk.idx()), trunk.hash()));
-        return create_pack_with_str_msg(r_pack->api, 0, "invalid hash");
-    } else {
-        blob->set_trunk_used(trunk.idx());
-    }
+    blob->set_trunk_used(trunk.idx());
 
     // 如果所有块写完，调用回调
     if (blob->unused_trunks().empty()) {
@@ -373,7 +366,7 @@ static auto download_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack
     if (!conn->ext_data().contains("down_fbs")) {
         conn->ext_data()["down_fbs"] = std::map<uint64_t, std::shared_ptr<FileBlob>>{};
     }
-    auto blob = std::make_shared<FileBlob>(f_ref->file_path(), true);
+    auto blob = std::make_shared<FileBlob>(f_ref->file_path());
     std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data()["down_fbs"])[blob->id()] = blob;
 
     auto meta = proto::FileMeta{};
@@ -419,7 +412,6 @@ static auto download_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pac
     auto s_trunk = proto::FileTrunk{};
     s_trunk.set_id(r_trunk.id());
     s_trunk.set_idx(r_trunk.idx());
-    s_trunk.set_hash(fb->trunk_hash(r_trunk.idx()));
     s_trunk.set_data(data.value());
     auto s_pack = create_pack_with_size(r_pack->api, 1, s_trunk.ByteSizeLong());
     if (!s_trunk.SerializeToArray(s_pack->data, s_pack->data_size)) {

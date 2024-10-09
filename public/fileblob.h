@@ -6,7 +6,6 @@
 #include <cryptopp/sha3.h>
 #include <cstdint>
 #include <fstream>
-#include <map>
 #include <optional>
 #include <set>
 
@@ -18,11 +17,11 @@ class FileBlob {
 
   public:
     // 读文件构造函数
-    FileBlob(const std::string &path, bool enable_hash);
+    FileBlob(const std::string &path);
 
     // 写文件构造函数
-    FileBlob(const std::string &path, uint64_t file_size, bool enable_hash);
-
+    FileBlob(const std::string &path, uint64_t file_size);
+    
     ~FileBlob() = default;
 
   public:
@@ -43,9 +42,6 @@ class FileBlob {
     // 完整文件哈希
     auto file_hash() -> const std::string &;
 
-    // 文件块哈希
-    auto trunk_hash(uint64_t idx) -> const std::string & { return trunks_hash_[idx]; }
-
     // 未使用过的块
     auto unused_trunks() -> std::set<uint64_t> { return unused_trunks_; }
 
@@ -64,10 +60,8 @@ class FileBlob {
     std::string path_;
 
     HashState hash_state_;
-    std::string file_hash_;                       // 整个文件的hash
-    std::map<uint64_t, std::string> trunks_hash_; // 保存各个块的hash
-    std::set<uint64_t> unused_trunks_;            // 未被使用的块集合
-    CryptoPP::Weak1::MD5 hash_context_;           // 写文件时需要的上下文
+    std::string file_hash_;            // 整个文件的hash
+    std::set<uint64_t> unused_trunks_; // 未被使用的块集合
 
   public:
     inline static uint32_t file_hash_size = 128;
