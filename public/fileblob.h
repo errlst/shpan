@@ -75,5 +75,5 @@ class FileBlob {
 
   private:
     inline static uint64_t NEXT_ID = 0;
-    inline static constexpr uint64_t TRUNK_SIZE = 1024 * 4; // 每个文件块大小
+    inline static constexpr uint64_t TRUNK_SIZE = 1024 * 16; // 每个文件块大小
 };

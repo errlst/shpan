@@ -312,6 +312,7 @@ auto start_upload_trunk() -> void {
 
                 //
                 auto &blob = cur_up_fb.second;
+                Log::info(std::format("start upload trunk, count = {}", blob->unused_trunks().size()));
                 while (!blob->unused_trunks().empty()) {
                     for (auto &idx : blob->unused_trunks()) {
                         auto trunk = blob->read(idx);
@@ -325,13 +326,12 @@ auto start_upload_trunk() -> void {
                             auto s_pack = create_pack_with_size(Api::UPLOAD_TRUNK, 0, pb_trunk.ByteSizeLong());
                             pb_trunk.SerializeToArray(s_pack->data, s_pack->data_size);
                             asio::write(*sock, asio::const_buffer(s_pack.get(), s_pack->data_size + sizeof(Pack)));
-                            Log::info(std::format("send trunk id:{} idx{}", cur_up_fb.first, idx));
-
-                            std::this_thread::sleep_for(std::chrono::seconds{1});
+                            Log::info(std::format("send trunk id:{} idx:{}", cur_up_fb.first, idx));
                         } else {
                             Log::error(std::format("read blob failed id:{} idx:{}", cur_up_fb.first, idx));
                         }
                     }
+                    // std::this_thread::sleep_for(std::chrono::seconds{1});
                 }
             }
         }}.detach();
@@ -399,7 +399,8 @@ auto recv_upload_trunk(std::shared_ptr<Pack> r_pack) -> void {
     }
 
     cur_up_fb.second->set_trunk_used(trunk.idx());
-    Log::info(std::format("upload trunk id:{}, idx:{} success", trunk.id(), trunk.idx()));
+    Log::info(std::format("upload trunk id:{}, idx:{} success, left trunk count: {}", trunk.id(), trunk.idx(),
+                          cur_up_fb.second->unused_trunks().size()));
 }
 
 auto recv_download_meta(std::shared_ptr<Pack> r_pack) -> void {
