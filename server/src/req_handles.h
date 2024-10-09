@@ -388,12 +388,61 @@ static auto download_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack
     return s_pack;
 }
 
+// 下载文件块
+// 参数：proto::FileTrunk
+// 返回：proto::FileTrunk
+// state:
+//  0 失败
+//  1 当前块完成
+static auto download_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) -> std::shared_ptr<Pack> {
+    check_logined();
+
+    auto r_trunk = proto::FileTrunk{};
+    if (!r_trunk.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        Log::info(std::format("req from {}, invalid trunk", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "invalid arguments");
+    }
+
+    auto &down_fbs = std::any_cast<std::map<uint64_t, std::shared_ptr<FileBlob>> &>(conn->ext_data()["down_fbs"]);
+    if (!down_fbs.contains(r_trunk.id())) {
+        Log::info(std::format("req from {}, invalid id", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "invalid id");
+    }
+
+    auto &fb = down_fbs.at(r_trunk.id());
+    auto data = fb->read(r_trunk.idx());
+    if (!data.has_value()) {
+        Log::info(std::format("req from {}, read file failed", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "read file failed");
+    }
+
+    auto s_trunk = proto::FileTrunk{};
+    s_trunk.set_id(r_trunk.id());
+    s_trunk.set_idx(r_trunk.idx());
+    s_trunk.set_hash(fb->trunk_hash(r_trunk.idx()));
+    s_trunk.set_data(data.value());
+    auto s_pack = create_pack_with_size(r_pack->api, 1, s_trunk.ByteSizeLong());
+    if (!s_trunk.SerializeToArray(s_pack->data, s_pack->data_size)) {
+        Log::info(std::format("req from {}, serialize failed", conn->address()));
+        return create_pack_with_str_msg(r_pack->api, 0, "serialize failed");
+    }
+    Log::info(
+        std::format("req from {} download trunk id:{} idx:{} success", conn->address(), r_trunk.id(), r_trunk.idx()));
+    fb->set_trunk_used(r_trunk.idx());
+    if (fb->unused_trunks().empty()) {
+        Log::info(std::format("req from {} download trunk id:{} finished", conn->address(), r_trunk.id()));
+        down_fbs.erase(r_trunk.id());
+    }
+    return s_pack;
+}
+
 static const auto req_handles = std::map<Api, handle_t>{{Api::REGIST, regist},
                                                         {Api::LOGIN, login},
                                                         {Api::LS_ENTRY, ls_entry},
                                                         {Api::MK_DIR, mk_dir},
                                                         {Api::UPLOAD_META, upload_meta},
                                                         {Api::UPLOAD_TRUNK, upload_trunk},
-                                                        {Api::DOWNLOAD_META, download_meta}};
+                                                        {Api::DOWNLOAD_META, download_meta},
+                                                        {Api::DOWNLOAD_TRUNK, download_trunk}};
 
 #undef check_logined

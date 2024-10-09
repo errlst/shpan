@@ -155,6 +155,38 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
     return s_pack;
 }
 
+auto start_download_trunk() -> void {
+    if (cur_down_fb.second == nullptr) {
+        std::thread{[] {
+            while (true) {
+                {
+                    auto lock = std::lock_guard{down_mut};
+                    if (down_fbs.empty()) {
+                        cur_down_fb.second = nullptr;
+                        return;
+                    }
+                    cur_down_fb = *down_fbs.begin();
+                    down_fbs.erase(down_fbs.begin());
+                }
+
+                // 发送下载请求
+                while (!cur_down_fb.second->unused_trunks().empty()) {
+                    for (auto idx : cur_down_fb.second->unused_trunks()) {
+                        auto s_trunk = proto::FileTrunk{};
+                        s_trunk.set_id(cur_down_fb.first);
+                        s_trunk.set_idx(idx);
+                        auto s_pack = create_pack_with_size(Api::DOWNLOAD_TRUNK, 0, s_trunk.ByteSizeLong());
+                        s_trunk.SerializeToArray(s_pack->data, s_pack->data_size);
+                        asio::write(*sock, asio::const_buffer(s_pack.get(), s_pack->data_size + sizeof(Pack)));
+                        Log::debug(std::format("req down trunk id:{} idx:{}", cur_down_fb.first, idx));
+                    }
+                    std::this_thread::sleep_for(std::chrono::seconds{1});
+                }
+            }
+        }}.detach();
+    }
+}
+
 auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> {
     if (args.size() != 3) {
         std::cout << "invalid input\n";
@@ -171,11 +203,11 @@ auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack
     down_meta_cbs[usr_path] = [=](proto::FileMeta meta) {
         Log::debug("down meta cb call");
         auto blob = std::make_shared<FileBlob>(local_path.string(), meta.size(), true);
-        // 新建线程开始上传文件块
-        if (down_fbs.empty()) {
+        {
+            auto lock = std::lock_guard{down_mut};
             down_fbs.emplace(meta.id(), blob);
-            std::thread{[] { Log::debug("start download trunk"); }}.detach();
         }
+        start_download_trunk();
     };
 
     return create_pack_with_str_msg(Api::DOWNLOAD_META, 0, usr_path);
@@ -262,6 +294,50 @@ auto recv_mkdir(std::shared_ptr<Pack> r_pack) -> void {
     std::cout << std::string_view{r_pack->data, r_pack->data_size} << "\n";
 }
 
+// 开始上传文件块
+auto start_upload_trunk() -> void {
+    // 如果当前没有在上传，新建上传线程
+    if (cur_up_fb.second == nullptr) {
+        std::thread{[] {
+            while (true) {
+                {
+                    auto lock = std::lock_guard{up_mut};
+                    if (up_fbs.size() == 0) {
+                        cur_up_fb.second = nullptr;
+                        return;
+                    }
+                    cur_up_fb = *up_fbs.begin();
+                    up_fbs.erase(up_fbs.begin());
+                }
+
+                //
+                auto &blob = cur_up_fb.second;
+                while (!blob->unused_trunks().empty()) {
+                    for (auto &idx : blob->unused_trunks()) {
+                        auto trunk = blob->read(idx);
+                        if (trunk.has_value()) {
+                            auto pb_trunk = proto::FileTrunk{};
+                            pb_trunk.set_id(cur_up_fb.first);
+                            pb_trunk.set_idx(idx);
+                            pb_trunk.set_hash(blob->trunk_hash(idx));
+                            pb_trunk.set_data(std::move(trunk.value()));
+
+                            auto s_pack = create_pack_with_size(Api::UPLOAD_TRUNK, 0, pb_trunk.ByteSizeLong());
+                            pb_trunk.SerializeToArray(s_pack->data, s_pack->data_size);
+                            asio::write(*sock, asio::const_buffer(s_pack.get(), s_pack->data_size + sizeof(Pack)));
+                            Log::info(std::format("send trunk id:{} idx{}", cur_up_fb.first, idx));
+
+                            std::this_thread::sleep_for(std::chrono::seconds{1});
+                        } else {
+                            Log::error(std::format("read blob failed id:{} idx:{}", cur_up_fb.first, idx));
+                        }
+                    }
+                }
+            }
+        }}.detach();
+    }
+}
+
 auto recv_upload_meta(std::shared_ptr<Pack> r_pack) -> void {
     if (r_pack->data_size != sizeof(uint64_t)) {
         Log::error("recv invalid");
@@ -282,45 +358,7 @@ auto recv_upload_meta(std::shared_ptr<Pack> r_pack) -> void {
             up_cbs[id]();
             up_cbs.erase(id);
         }
-        // 如果当前没有在上传，新建上传线程
-        if (cur_up_fb.second == nullptr) {
-            std::thread{[] {
-                while (true) {
-                    {
-                        auto lock = std::lock_guard{up_mut};
-                        if (up_fbs.size() == 0) {
-                            return;
-                        }
-                        cur_up_fb = *up_fbs.begin();
-                        up_fbs.erase(up_fbs.begin());
-                    }
-
-                    //
-                    auto &blob = cur_up_fb.second;
-                    while (!blob->unused_trunks().empty()) {
-                        for (auto &idx : blob->unused_trunks()) {
-                            auto trunk = blob->read(idx);
-                            if (trunk.has_value()) {
-                                auto pb_trunk = proto::FileTrunk{};
-                                pb_trunk.set_id(cur_up_fb.first);
-                                pb_trunk.set_idx(idx);
-                                pb_trunk.set_hash(blob->trunk_hash(idx));
-                                pb_trunk.set_data(std::move(trunk.value()));
-
-                                auto s_pack = create_pack_with_size(Api::UPLOAD_TRUNK, 0, pb_trunk.ByteSizeLong());
-                                pb_trunk.SerializeToArray(s_pack->data, s_pack->data_size);
-                                asio::write(*sock, asio::const_buffer(s_pack.get(), s_pack->data_size + sizeof(Pack)));
-                                Log::info(std::format("send trunk id:{} idx{}", cur_up_fb.first, idx));
-
-                                std::this_thread::sleep_for(std::chrono::seconds{1});
-                            } else {
-                                Log::error(std::format("read blob failed id:{} idx:{}", cur_up_fb.first, idx));
-                            }
-                        }
-                    }
-                }
-            }}.detach();
-        }
+        start_upload_trunk();
 
         return;
     }
@@ -363,6 +401,7 @@ auto recv_upload_trunk(std::shared_ptr<Pack> r_pack) -> void {
     cur_up_fb.second->set_trunk_used(trunk.idx());
     Log::info(std::format("upload trunk id:{}, idx:{} success", trunk.id(), trunk.idx()));
 }
+
 auto recv_download_meta(std::shared_ptr<Pack> r_pack) -> void {
     if (r_pack->state == 0) {
         Log::error(std::format("download meta failed : {}", std::string_view{r_pack->data, r_pack->data_size}));
@@ -379,13 +418,45 @@ auto recv_download_meta(std::shared_ptr<Pack> r_pack) -> void {
     down_meta_cbs[meta.path()](meta);
 }
 
+auto recv_download_trunk(std::shared_ptr<Pack> r_pack) -> void {
+    if (r_pack->state == 0) {
+        Log::error(std::format("download trunk failed {}", std::string_view{r_pack->data, r_pack->data_size}));
+        return;
+    }
+
+    auto trunk = proto::FileTrunk{};
+    if (!trunk.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        Log::error(std::format("parse trunk failed"));
+        return;
+    }
+
+    if (trunk.id() != cur_down_fb.first) {
+        Log::error(std::format("trunk id:{} not cur down trunk id:{}", trunk.id(), cur_down_fb.first));
+        return;
+    }
+
+    cur_down_fb.second->write(trunk.data(), trunk.idx());
+    if (cur_down_fb.second->trunk_hash(trunk.idx()) != trunk.hash()) {
+        Log::error(std::format("trunk id:{} hash:{} idx:{} hash errored {}", trunk.id(), trunk.hash(), trunk.idx(),
+                               cur_down_fb.second->trunk_hash(trunk.idx())));
+        return;
+    }
+
+    cur_down_fb.second->set_trunk_used(trunk.idx());
+    Log::info(std::format("download trunk id:{} idx:{}", trunk.id(), trunk.idx()));
+    if (cur_down_fb.second->unused_trunks().empty()) {
+        Log::info(std::format("download trunk id:{} finished", trunk.id()));
+    }
+}
+
 const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist},
                                                        {Api::LOGIN, recv_login},
                                                        {Api::LS_ENTRY, recv_ls},
                                                        {Api::MK_DIR, recv_mkdir},
                                                        {Api::UPLOAD_META, recv_upload_meta},
                                                        {Api::UPLOAD_TRUNK, recv_upload_trunk},
-                                                       {Api::DOWNLOAD_META, recv_download_meta}};
+                                                       {Api::DOWNLOAD_META, recv_download_meta},
+                                                       {Api::DOWNLOAD_TRUNK, recv_download_trunk}};
 
 auto slove_recv(std::shared_ptr<asio::ip::tcp::socket> sock) -> void {
     try {
