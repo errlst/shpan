@@ -7,12 +7,14 @@
 enum class Api : uint8_t {
     REGIST,       // 注册
     LOGIN,        // 登录
+    LOGOUT,       // 登出
     LS_ENTRY,     // 查看条目
     MK_DIR,       // 创建目录
     UPLOAD_META,  // 文件元数据
     UPLOAD_TRUNK, // 文件块数据
     DOWNLOAD_META,
     DOWNLOAD_TRUNK,
+    RESUME_TRANS, // 断点续传（服务端发送请求
 
     MAX_INVALID
 };
@@ -23,6 +25,8 @@ static auto api_to_string(Api api) -> std::string {
         return "regist";
     case Api::LOGIN:
         return "login";
+    case Api::LOGOUT:
+        return "logout";
     case Api::LS_ENTRY:
         return "ls_entry";
     case Api::MK_DIR:
@@ -35,6 +39,8 @@ static auto api_to_string(Api api) -> std::string {
         return "download_meta";
     case Api::DOWNLOAD_TRUNK:
         return "download_trunk";
+    case Api::RESUME_TRANS:
+        return "resume_trans";
     default:
         return "invalid";
     }

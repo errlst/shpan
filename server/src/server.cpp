@@ -24,8 +24,12 @@ auto recv(std::shared_ptr<Connection> conn) -> void {
                 }
             }
         }
+    } catch (asio::system_error &e) {
+        Log::error(std::format("recv error from {}", conn->address(), e.what()));
+        req_handles.at(Api::LOGOUT)(conn, nullptr);
+        conn->sock().close();
     } catch (std::exception &e) {
-        Log::error(std::format("recv error from {}, {}", conn->address(), e.what()));
+        Log::error(std::format("error {}", conn->address(), e.what()));
     }
 }
 

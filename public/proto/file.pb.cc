@@ -23,10 +23,12 @@ namespace _pbi = _pb::internal;
 namespace proto {
 PROTOBUF_CONSTEXPR FileMeta::FileMeta(
     ::_pbi::ConstantInitialized): _impl_{
-    /*decltype(_impl_.path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+    /*decltype(_impl_.usr_path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.local_path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.hash_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
   , /*decltype(_impl_.id_)*/uint64_t{0u}
   , /*decltype(_impl_.size_)*/uint64_t{0u}
+  , /*decltype(_impl_.begin_idx_)*/uint64_t{0u}
   , /*decltype(_impl_._cached_size_)*/{}} {}
 struct FileMetaDefaultTypeInternal {
   PROTOBUF_CONSTEXPR FileMetaDefaultTypeInternal()
@@ -37,6 +39,23 @@ struct FileMetaDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileMetaDefaultTypeInternal _FileMeta_default_instance_;
+PROTOBUF_CONSTEXPR FileMetaResume::FileMetaResume(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.usr_path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.local_path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.begin_idx_)*/uint64_t{0u}
+  , /*decltype(_impl_.file_size_)*/uint64_t{0u}
+  , /*decltype(_impl_.is_upload_)*/false
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct FileMetaResumeDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR FileMetaResumeDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~FileMetaResumeDefaultTypeInternal() {}
+  union {
+    FileMetaResume _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileMetaResumeDefaultTypeInternal _FileMetaResume_default_instance_;
 PROTOBUF_CONSTEXPR FileTrunk::FileTrunk(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -53,7 +72,7 @@ struct FileTrunkDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileTrunkDefaultTypeInternal _FileTrunk_default_instance_;
 }  // namespace proto
-static ::_pb::Metadata file_level_metadata_file_2eproto[2];
+static ::_pb::Metadata file_level_metadata_file_2eproto[3];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_file_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_file_2eproto = nullptr;
 
@@ -66,8 +85,21 @@ const uint32_t TableStruct_file_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
   ~0u,  // no _inlined_string_donated_
   PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.id_),
   PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.size_),
-  PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.path_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.begin_idx_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.usr_path_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.local_path_),
   PROTOBUF_FIELD_OFFSET(::proto::FileMeta, _impl_.hash_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.usr_path_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.local_path_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.begin_idx_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.file_size_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.is_upload_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proto::FileTrunk, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -80,25 +112,31 @@ const uint32_t TableStruct_file_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
 };
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::proto::FileMeta)},
-  { 10, -1, -1, sizeof(::proto::FileTrunk)},
+  { 12, -1, -1, sizeof(::proto::FileMetaResume)},
+  { 23, -1, -1, sizeof(::proto::FileTrunk)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::proto::_FileMeta_default_instance_._instance,
+  &::proto::_FileMetaResume_default_instance_._instance,
   &::proto::_FileTrunk_default_instance_._instance,
 };
 
 const char descriptor_table_protodef_file_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\nfile.proto\022\005proto\"@\n\010FileMeta\022\n\n\002id\030\001 "
-  "\001(\004\022\014\n\004size\030\002 \001(\004\022\014\n\004path\030\003 \001(\t\022\014\n\004hash\030"
-  "\004 \001(\t\"2\n\tFileTrunk\022\n\n\002id\030\001 \001(\004\022\013\n\003idx\030\002 "
-  "\001(\004\022\014\n\004data\030\003 \001(\014b\006proto3"
+  "\n\nfile.proto\022\005proto\"k\n\010FileMeta\022\n\n\002id\030\001 "
+  "\001(\004\022\014\n\004size\030\002 \001(\004\022\021\n\tbegin_idx\030\003 \001(\004\022\020\n\010"
+  "usr_path\030\004 \001(\t\022\022\n\nlocal_path\030\005 \001(\t\022\014\n\004ha"
+  "sh\030\006 \001(\t\"o\n\016FileMetaResume\022\020\n\010usr_path\030\001"
+  " \001(\t\022\022\n\nlocal_path\030\002 \001(\t\022\021\n\tbegin_idx\030\003 "
+  "\001(\004\022\021\n\tfile_size\030\004 \001(\004\022\021\n\tis_upload\030\005 \001("
+  "\010\"2\n\tFileTrunk\022\n\n\002id\030\001 \001(\004\022\013\n\003idx\030\002 \001(\004\022"
+  "\014\n\004data\030\003 \001(\014b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_file_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_file_2eproto = {
-    false, false, 145, descriptor_table_protodef_file_2eproto,
+    false, false, 301, descriptor_table_protodef_file_2eproto,
     "file.proto",
-    &descriptor_table_file_2eproto_once, nullptr, 0, 2,
+    &descriptor_table_file_2eproto_once, nullptr, 0, 3,
     schemas, file_default_instances, TableStruct_file_2eproto::offsets,
     file_level_metadata_file_2eproto, file_level_enum_descriptors_file_2eproto,
     file_level_service_descriptors_file_2eproto,
@@ -127,19 +165,29 @@ FileMeta::FileMeta(const FileMeta& from)
   : ::PROTOBUF_NAMESPACE_ID::Message() {
   FileMeta* const _this = this; (void)_this;
   new (&_impl_) Impl_{
-      decltype(_impl_.path_){}
+      decltype(_impl_.usr_path_){}
+    , decltype(_impl_.local_path_){}
     , decltype(_impl_.hash_){}
     , decltype(_impl_.id_){}
     , decltype(_impl_.size_){}
+    , decltype(_impl_.begin_idx_){}
     , /*decltype(_impl_._cached_size_)*/{}};
 
   _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
-  _impl_.path_.InitDefault();
+  _impl_.usr_path_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.path_.Set("", GetArenaForAllocation());
+    _impl_.usr_path_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (!from._internal_path().empty()) {
-    _this->_impl_.path_.Set(from._internal_path(), 
+  if (!from._internal_usr_path().empty()) {
+    _this->_impl_.usr_path_.Set(from._internal_usr_path(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.local_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_local_path().empty()) {
+    _this->_impl_.local_path_.Set(from._internal_local_path(), 
       _this->GetArenaForAllocation());
   }
   _impl_.hash_.InitDefault();
@@ -151,8 +199,8 @@ FileMeta::FileMeta(const FileMeta& from)
       _this->GetArenaForAllocation());
   }
   ::memcpy(&_impl_.id_, &from._impl_.id_,
-    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.size_) -
-    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.size_));
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.begin_idx_) -
+    reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.begin_idx_));
   // @@protoc_insertion_point(copy_constructor:proto.FileMeta)
 }
 
@@ -161,15 +209,21 @@ inline void FileMeta::SharedCtor(
   (void)arena;
   (void)is_message_owned;
   new (&_impl_) Impl_{
-      decltype(_impl_.path_){}
+      decltype(_impl_.usr_path_){}
+    , decltype(_impl_.local_path_){}
     , decltype(_impl_.hash_){}
     , decltype(_impl_.id_){uint64_t{0u}}
     , decltype(_impl_.size_){uint64_t{0u}}
+    , decltype(_impl_.begin_idx_){uint64_t{0u}}
     , /*decltype(_impl_._cached_size_)*/{}
   };
-  _impl_.path_.InitDefault();
+  _impl_.usr_path_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-    _impl_.path_.Set("", GetArenaForAllocation());
+    _impl_.usr_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.local_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.local_path_.Set("", GetArenaForAllocation());
   #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   _impl_.hash_.InitDefault();
   #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
@@ -188,7 +242,8 @@ FileMeta::~FileMeta() {
 
 inline void FileMeta::SharedDtor() {
   GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
-  _impl_.path_.Destroy();
+  _impl_.usr_path_.Destroy();
+  _impl_.local_path_.Destroy();
   _impl_.hash_.Destroy();
 }
 
@@ -202,11 +257,12 @@ void FileMeta::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  _impl_.path_.ClearToEmpty();
+  _impl_.usr_path_.ClearToEmpty();
+  _impl_.local_path_.ClearToEmpty();
   _impl_.hash_.ClearToEmpty();
   ::memset(&_impl_.id_, 0, static_cast<size_t>(
-      reinterpret_cast<char*>(&_impl_.size_) -
-      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.size_));
+      reinterpret_cast<char*>(&_impl_.begin_idx_) -
+      reinterpret_cast<char*>(&_impl_.id_)) + sizeof(_impl_.begin_idx_));
   _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
 }
 
@@ -232,19 +288,37 @@ const char* FileMeta::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx)
         } else
           goto handle_unusual;
         continue;
-      // string path = 3;
+      // uint64 begin_idx = 3;
       case 3:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 26)) {
-          auto str = _internal_mutable_path();
-          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.begin_idx_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
           CHK_(ptr);
-          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMeta.path"));
         } else
           goto handle_unusual;
         continue;
-      // string hash = 4;
+      // string usr_path = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 34)) {
+          auto str = _internal_mutable_usr_path();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMeta.usr_path"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string local_path = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 42)) {
+          auto str = _internal_mutable_local_path();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMeta.local_path"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string hash = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 50)) {
           auto str = _internal_mutable_hash();
           ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
           CHK_(ptr);
@@ -293,24 +367,40 @@ uint8_t* FileMeta::_InternalSerialize(
     target = ::_pbi::WireFormatLite::WriteUInt64ToArray(2, this->_internal_size(), target);
   }
 
-  // string path = 3;
-  if (!this->_internal_path().empty()) {
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
-      this->_internal_path().data(), static_cast<int>(this->_internal_path().length()),
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "proto.FileMeta.path");
-    target = stream->WriteStringMaybeAliased(
-        3, this->_internal_path(), target);
+  // uint64 begin_idx = 3;
+  if (this->_internal_begin_idx() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_begin_idx(), target);
   }
 
-  // string hash = 4;
+  // string usr_path = 4;
+  if (!this->_internal_usr_path().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_usr_path().data(), static_cast<int>(this->_internal_usr_path().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.FileMeta.usr_path");
+    target = stream->WriteStringMaybeAliased(
+        4, this->_internal_usr_path(), target);
+  }
+
+  // string local_path = 5;
+  if (!this->_internal_local_path().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_local_path().data(), static_cast<int>(this->_internal_local_path().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.FileMeta.local_path");
+    target = stream->WriteStringMaybeAliased(
+        5, this->_internal_local_path(), target);
+  }
+
+  // string hash = 6;
   if (!this->_internal_hash().empty()) {
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_hash().data(), static_cast<int>(this->_internal_hash().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
       "proto.FileMeta.hash");
     target = stream->WriteStringMaybeAliased(
-        4, this->_internal_hash(), target);
+        6, this->_internal_hash(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -329,14 +419,21 @@ size_t FileMeta::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // string path = 3;
-  if (!this->_internal_path().empty()) {
+  // string usr_path = 4;
+  if (!this->_internal_usr_path().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
-        this->_internal_path());
+        this->_internal_usr_path());
   }
 
-  // string hash = 4;
+  // string local_path = 5;
+  if (!this->_internal_local_path().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_local_path());
+  }
+
+  // string hash = 6;
   if (!this->_internal_hash().empty()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
@@ -351,6 +448,11 @@ size_t FileMeta::ByteSizeLong() const {
   // uint64 size = 2;
   if (this->_internal_size() != 0) {
     total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_size());
+  }
+
+  // uint64 begin_idx = 3;
+  if (this->_internal_begin_idx() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_begin_idx());
   }
 
   return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
@@ -371,8 +473,11 @@ void FileMeta::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTO
   uint32_t cached_has_bits = 0;
   (void) cached_has_bits;
 
-  if (!from._internal_path().empty()) {
-    _this->_internal_set_path(from._internal_path());
+  if (!from._internal_usr_path().empty()) {
+    _this->_internal_set_usr_path(from._internal_usr_path());
+  }
+  if (!from._internal_local_path().empty()) {
+    _this->_internal_set_local_path(from._internal_local_path());
   }
   if (!from._internal_hash().empty()) {
     _this->_internal_set_hash(from._internal_hash());
@@ -382,6 +487,9 @@ void FileMeta::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTO
   }
   if (from._internal_size() != 0) {
     _this->_internal_set_size(from._internal_size());
+  }
+  if (from._internal_begin_idx() != 0) {
+    _this->_internal_set_begin_idx(from._internal_begin_idx());
   }
   _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
 }
@@ -403,16 +511,20 @@ void FileMeta::InternalSwap(FileMeta* other) {
   auto* rhs_arena = other->GetArenaForAllocation();
   _internal_metadata_.InternalSwap(&other->_internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
-      &_impl_.path_, lhs_arena,
-      &other->_impl_.path_, rhs_arena
+      &_impl_.usr_path_, lhs_arena,
+      &other->_impl_.usr_path_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.local_path_, lhs_arena,
+      &other->_impl_.local_path_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
       &_impl_.hash_, lhs_arena,
       &other->_impl_.hash_, rhs_arena
   );
   ::PROTOBUF_NAMESPACE_ID::internal::memswap<
-      PROTOBUF_FIELD_OFFSET(FileMeta, _impl_.size_)
-      + sizeof(FileMeta::_impl_.size_)
+      PROTOBUF_FIELD_OFFSET(FileMeta, _impl_.begin_idx_)
+      + sizeof(FileMeta::_impl_.begin_idx_)
       - PROTOBUF_FIELD_OFFSET(FileMeta, _impl_.id_)>(
           reinterpret_cast<char*>(&_impl_.id_),
           reinterpret_cast<char*>(&other->_impl_.id_));
@@ -422,6 +534,343 @@ void FileMeta::InternalSwap(FileMeta* other) {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
       file_level_metadata_file_2eproto[0]);
+}
+
+// ===================================================================
+
+class FileMetaResume::_Internal {
+ public:
+};
+
+FileMetaResume::FileMetaResume(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proto.FileMetaResume)
+}
+FileMetaResume::FileMetaResume(const FileMetaResume& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  FileMetaResume* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.usr_path_){}
+    , decltype(_impl_.local_path_){}
+    , decltype(_impl_.begin_idx_){}
+    , decltype(_impl_.file_size_){}
+    , decltype(_impl_.is_upload_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.usr_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.usr_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_usr_path().empty()) {
+    _this->_impl_.usr_path_.Set(from._internal_usr_path(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.local_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_local_path().empty()) {
+    _this->_impl_.local_path_.Set(from._internal_local_path(), 
+      _this->GetArenaForAllocation());
+  }
+  ::memcpy(&_impl_.begin_idx_, &from._impl_.begin_idx_,
+    static_cast<size_t>(reinterpret_cast<char*>(&_impl_.is_upload_) -
+    reinterpret_cast<char*>(&_impl_.begin_idx_)) + sizeof(_impl_.is_upload_));
+  // @@protoc_insertion_point(copy_constructor:proto.FileMetaResume)
+}
+
+inline void FileMetaResume::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.usr_path_){}
+    , decltype(_impl_.local_path_){}
+    , decltype(_impl_.begin_idx_){uint64_t{0u}}
+    , decltype(_impl_.file_size_){uint64_t{0u}}
+    , decltype(_impl_.is_upload_){false}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.usr_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.usr_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.local_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+FileMetaResume::~FileMetaResume() {
+  // @@protoc_insertion_point(destructor:proto.FileMetaResume)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void FileMetaResume::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.usr_path_.Destroy();
+  _impl_.local_path_.Destroy();
+}
+
+void FileMetaResume::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void FileMetaResume::Clear() {
+// @@protoc_insertion_point(message_clear_start:proto.FileMetaResume)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.usr_path_.ClearToEmpty();
+  _impl_.local_path_.ClearToEmpty();
+  ::memset(&_impl_.begin_idx_, 0, static_cast<size_t>(
+      reinterpret_cast<char*>(&_impl_.is_upload_) -
+      reinterpret_cast<char*>(&_impl_.begin_idx_)) + sizeof(_impl_.is_upload_));
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* FileMetaResume::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string usr_path = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_usr_path();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMetaResume.usr_path"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string local_path = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_local_path();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMetaResume.local_path"));
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 begin_idx = 3;
+      case 3:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 24)) {
+          _impl_.begin_idx_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // uint64 file_size = 4;
+      case 4:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 32)) {
+          _impl_.file_size_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      // bool is_upload = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 40)) {
+          _impl_.is_upload_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint64(&ptr);
+          CHK_(ptr);
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* FileMetaResume::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proto.FileMetaResume)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string usr_path = 1;
+  if (!this->_internal_usr_path().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_usr_path().data(), static_cast<int>(this->_internal_usr_path().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.FileMetaResume.usr_path");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_usr_path(), target);
+  }
+
+  // string local_path = 2;
+  if (!this->_internal_local_path().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_local_path().data(), static_cast<int>(this->_internal_local_path().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.FileMetaResume.local_path");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_local_path(), target);
+  }
+
+  // uint64 begin_idx = 3;
+  if (this->_internal_begin_idx() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(3, this->_internal_begin_idx(), target);
+  }
+
+  // uint64 file_size = 4;
+  if (this->_internal_file_size() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteUInt64ToArray(4, this->_internal_file_size(), target);
+  }
+
+  // bool is_upload = 5;
+  if (this->_internal_is_upload() != 0) {
+    target = stream->EnsureSpace(target);
+    target = ::_pbi::WireFormatLite::WriteBoolToArray(5, this->_internal_is_upload(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proto.FileMetaResume)
+  return target;
+}
+
+size_t FileMetaResume::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proto.FileMetaResume)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string usr_path = 1;
+  if (!this->_internal_usr_path().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_usr_path());
+  }
+
+  // string local_path = 2;
+  if (!this->_internal_local_path().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_local_path());
+  }
+
+  // uint64 begin_idx = 3;
+  if (this->_internal_begin_idx() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_begin_idx());
+  }
+
+  // uint64 file_size = 4;
+  if (this->_internal_file_size() != 0) {
+    total_size += ::_pbi::WireFormatLite::UInt64SizePlusOne(this->_internal_file_size());
+  }
+
+  // bool is_upload = 5;
+  if (this->_internal_is_upload() != 0) {
+    total_size += 1 + 1;
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData FileMetaResume::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    FileMetaResume::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*FileMetaResume::GetClassData() const { return &_class_data_; }
+
+
+void FileMetaResume::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<FileMetaResume*>(&to_msg);
+  auto& from = static_cast<const FileMetaResume&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proto.FileMetaResume)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_usr_path().empty()) {
+    _this->_internal_set_usr_path(from._internal_usr_path());
+  }
+  if (!from._internal_local_path().empty()) {
+    _this->_internal_set_local_path(from._internal_local_path());
+  }
+  if (from._internal_begin_idx() != 0) {
+    _this->_internal_set_begin_idx(from._internal_begin_idx());
+  }
+  if (from._internal_file_size() != 0) {
+    _this->_internal_set_file_size(from._internal_file_size());
+  }
+  if (from._internal_is_upload() != 0) {
+    _this->_internal_set_is_upload(from._internal_is_upload());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void FileMetaResume::CopyFrom(const FileMetaResume& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proto.FileMetaResume)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool FileMetaResume::IsInitialized() const {
+  return true;
+}
+
+void FileMetaResume::InternalSwap(FileMetaResume* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.usr_path_, lhs_arena,
+      &other->_impl_.usr_path_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.local_path_, lhs_arena,
+      &other->_impl_.local_path_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::memswap<
+      PROTOBUF_FIELD_OFFSET(FileMetaResume, _impl_.is_upload_)
+      + sizeof(FileMetaResume::_impl_.is_upload_)
+      - PROTOBUF_FIELD_OFFSET(FileMetaResume, _impl_.begin_idx_)>(
+          reinterpret_cast<char*>(&_impl_.begin_idx_),
+          reinterpret_cast<char*>(&other->_impl_.begin_idx_));
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata FileMetaResume::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
+      file_level_metadata_file_2eproto[1]);
 }
 
 // ===================================================================
@@ -679,7 +1128,7 @@ void FileTrunk::InternalSwap(FileTrunk* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata FileTrunk::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
-      file_level_metadata_file_2eproto[1]);
+      file_level_metadata_file_2eproto[2]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -688,6 +1137,10 @@ PROTOBUF_NAMESPACE_OPEN
 template<> PROTOBUF_NOINLINE ::proto::FileMeta*
 Arena::CreateMaybeMessage< ::proto::FileMeta >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proto::FileMeta >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proto::FileMetaResume*
+Arena::CreateMaybeMessage< ::proto::FileMetaResume >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proto::FileMetaResume >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proto::FileTrunk*
 Arena::CreateMaybeMessage< ::proto::FileTrunk >(Arena* arena) {

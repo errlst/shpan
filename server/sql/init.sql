@@ -25,6 +25,18 @@ where
 
 end;
 
+-- 断点续传表
+create table
+    if not exists resume_trans_table (
+        user text not null,
+        raw_path text not null, -- 服务端原始数据路径
+        usr_path text not null, -- 用户空间路径
+        local_path text not null, -- 客户端路径
+        begin_idx integer not null, -- 从哪个块开始续传
+        file_size integer not null,
+        is_upload boolean not null -- 上传或下载
+    );
+
 -- 条目共享链接
 -- link 为随机生成的32位ascii字符串，降低撞库破解风险
 -- left_times 为剩下有效的访问次数

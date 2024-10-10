@@ -48,12 +48,16 @@ namespace proto {
 class FileMeta;
 struct FileMetaDefaultTypeInternal;
 extern FileMetaDefaultTypeInternal _FileMeta_default_instance_;
+class FileMetaResume;
+struct FileMetaResumeDefaultTypeInternal;
+extern FileMetaResumeDefaultTypeInternal _FileMetaResume_default_instance_;
 class FileTrunk;
 struct FileTrunkDefaultTypeInternal;
 extern FileTrunkDefaultTypeInternal _FileTrunk_default_instance_;
 }  // namespace proto
 PROTOBUF_NAMESPACE_OPEN
 template<> ::proto::FileMeta* Arena::CreateMaybeMessage<::proto::FileMeta>(Arena*);
+template<> ::proto::FileMetaResume* Arena::CreateMaybeMessage<::proto::FileMetaResume>(Arena*);
 template<> ::proto::FileTrunk* Arena::CreateMaybeMessage<::proto::FileTrunk>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace proto {
@@ -181,26 +185,42 @@ class FileMeta final :
   // accessors -------------------------------------------------------
 
   enum : int {
-    kPathFieldNumber = 3,
-    kHashFieldNumber = 4,
+    kUsrPathFieldNumber = 4,
+    kLocalPathFieldNumber = 5,
+    kHashFieldNumber = 6,
     kIdFieldNumber = 1,
     kSizeFieldNumber = 2,
+    kBeginIdxFieldNumber = 3,
   };
-  // string path = 3;
-  void clear_path();
-  const std::string& path() const;
+  // string usr_path = 4;
+  void clear_usr_path();
+  const std::string& usr_path() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
-  void set_path(ArgT0&& arg0, ArgT... args);
-  std::string* mutable_path();
-  PROTOBUF_NODISCARD std::string* release_path();
-  void set_allocated_path(std::string* path);
+  void set_usr_path(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_usr_path();
+  PROTOBUF_NODISCARD std::string* release_usr_path();
+  void set_allocated_usr_path(std::string* usr_path);
   private:
-  const std::string& _internal_path() const;
-  inline PROTOBUF_ALWAYS_INLINE void _internal_set_path(const std::string& value);
-  std::string* _internal_mutable_path();
+  const std::string& _internal_usr_path() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_usr_path(const std::string& value);
+  std::string* _internal_mutable_usr_path();
   public:
 
-  // string hash = 4;
+  // string local_path = 5;
+  void clear_local_path();
+  const std::string& local_path() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_local_path(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_local_path();
+  PROTOBUF_NODISCARD std::string* release_local_path();
+  void set_allocated_local_path(std::string* local_path);
+  private:
+  const std::string& _internal_local_path() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_local_path(const std::string& value);
+  std::string* _internal_mutable_local_path();
+  public:
+
+  // string hash = 6;
   void clear_hash();
   const std::string& hash() const;
   template <typename ArgT0 = const std::string&, typename... ArgT>
@@ -232,6 +252,15 @@ class FileMeta final :
   void _internal_set_size(uint64_t value);
   public:
 
+  // uint64 begin_idx = 3;
+  void clear_begin_idx();
+  uint64_t begin_idx() const;
+  void set_begin_idx(uint64_t value);
+  private:
+  uint64_t _internal_begin_idx() const;
+  void _internal_set_begin_idx(uint64_t value);
+  public:
+
   // @@protoc_insertion_point(class_scope:proto.FileMeta)
  private:
   class _Internal;
@@ -240,10 +269,214 @@ class FileMeta final :
   typedef void InternalArenaConstructable_;
   typedef void DestructorSkippable_;
   struct Impl_ {
-    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr path_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr usr_path_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr local_path_;
     ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr hash_;
     uint64_t id_;
     uint64_t size_;
+    uint64_t begin_idx_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_file_2eproto;
+};
+// -------------------------------------------------------------------
+
+class FileMetaResume final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proto.FileMetaResume) */ {
+ public:
+  inline FileMetaResume() : FileMetaResume(nullptr) {}
+  ~FileMetaResume() override;
+  explicit PROTOBUF_CONSTEXPR FileMetaResume(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  FileMetaResume(const FileMetaResume& from);
+  FileMetaResume(FileMetaResume&& from) noexcept
+    : FileMetaResume() {
+    *this = ::std::move(from);
+  }
+
+  inline FileMetaResume& operator=(const FileMetaResume& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline FileMetaResume& operator=(FileMetaResume&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const FileMetaResume& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const FileMetaResume* internal_default_instance() {
+    return reinterpret_cast<const FileMetaResume*>(
+               &_FileMetaResume_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    1;
+
+  friend void swap(FileMetaResume& a, FileMetaResume& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(FileMetaResume* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(FileMetaResume* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  FileMetaResume* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<FileMetaResume>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const FileMetaResume& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const FileMetaResume& from) {
+    FileMetaResume::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(FileMetaResume* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proto.FileMetaResume";
+  }
+  protected:
+  explicit FileMetaResume(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kUsrPathFieldNumber = 1,
+    kLocalPathFieldNumber = 2,
+    kBeginIdxFieldNumber = 3,
+    kFileSizeFieldNumber = 4,
+    kIsUploadFieldNumber = 5,
+  };
+  // string usr_path = 1;
+  void clear_usr_path();
+  const std::string& usr_path() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_usr_path(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_usr_path();
+  PROTOBUF_NODISCARD std::string* release_usr_path();
+  void set_allocated_usr_path(std::string* usr_path);
+  private:
+  const std::string& _internal_usr_path() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_usr_path(const std::string& value);
+  std::string* _internal_mutable_usr_path();
+  public:
+
+  // string local_path = 2;
+  void clear_local_path();
+  const std::string& local_path() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_local_path(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_local_path();
+  PROTOBUF_NODISCARD std::string* release_local_path();
+  void set_allocated_local_path(std::string* local_path);
+  private:
+  const std::string& _internal_local_path() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_local_path(const std::string& value);
+  std::string* _internal_mutable_local_path();
+  public:
+
+  // uint64 begin_idx = 3;
+  void clear_begin_idx();
+  uint64_t begin_idx() const;
+  void set_begin_idx(uint64_t value);
+  private:
+  uint64_t _internal_begin_idx() const;
+  void _internal_set_begin_idx(uint64_t value);
+  public:
+
+  // uint64 file_size = 4;
+  void clear_file_size();
+  uint64_t file_size() const;
+  void set_file_size(uint64_t value);
+  private:
+  uint64_t _internal_file_size() const;
+  void _internal_set_file_size(uint64_t value);
+  public:
+
+  // bool is_upload = 5;
+  void clear_is_upload();
+  bool is_upload() const;
+  void set_is_upload(bool value);
+  private:
+  bool _internal_is_upload() const;
+  void _internal_set_is_upload(bool value);
+  public:
+
+  // @@protoc_insertion_point(class_scope:proto.FileMetaResume)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr usr_path_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr local_path_;
+    uint64_t begin_idx_;
+    uint64_t file_size_;
+    bool is_upload_;
     mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   };
   union { Impl_ _impl_; };
@@ -299,7 +532,7 @@ class FileTrunk final :
                &_FileTrunk_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    1;
+    2;
 
   friend void swap(FileTrunk& a, FileTrunk& b) {
     a.Swap(&b);
@@ -475,57 +708,127 @@ inline void FileMeta::set_size(uint64_t value) {
   // @@protoc_insertion_point(field_set:proto.FileMeta.size)
 }
 
-// string path = 3;
-inline void FileMeta::clear_path() {
-  _impl_.path_.ClearToEmpty();
+// uint64 begin_idx = 3;
+inline void FileMeta::clear_begin_idx() {
+  _impl_.begin_idx_ = uint64_t{0u};
 }
-inline const std::string& FileMeta::path() const {
-  // @@protoc_insertion_point(field_get:proto.FileMeta.path)
-  return _internal_path();
+inline uint64_t FileMeta::_internal_begin_idx() const {
+  return _impl_.begin_idx_;
+}
+inline uint64_t FileMeta::begin_idx() const {
+  // @@protoc_insertion_point(field_get:proto.FileMeta.begin_idx)
+  return _internal_begin_idx();
+}
+inline void FileMeta::_internal_set_begin_idx(uint64_t value) {
+  
+  _impl_.begin_idx_ = value;
+}
+inline void FileMeta::set_begin_idx(uint64_t value) {
+  _internal_set_begin_idx(value);
+  // @@protoc_insertion_point(field_set:proto.FileMeta.begin_idx)
+}
+
+// string usr_path = 4;
+inline void FileMeta::clear_usr_path() {
+  _impl_.usr_path_.ClearToEmpty();
+}
+inline const std::string& FileMeta::usr_path() const {
+  // @@protoc_insertion_point(field_get:proto.FileMeta.usr_path)
+  return _internal_usr_path();
 }
 template <typename ArgT0, typename... ArgT>
 inline PROTOBUF_ALWAYS_INLINE
-void FileMeta::set_path(ArgT0&& arg0, ArgT... args) {
+void FileMeta::set_usr_path(ArgT0&& arg0, ArgT... args) {
  
- _impl_.path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
-  // @@protoc_insertion_point(field_set:proto.FileMeta.path)
+ _impl_.usr_path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileMeta.usr_path)
 }
-inline std::string* FileMeta::mutable_path() {
-  std::string* _s = _internal_mutable_path();
-  // @@protoc_insertion_point(field_mutable:proto.FileMeta.path)
+inline std::string* FileMeta::mutable_usr_path() {
+  std::string* _s = _internal_mutable_usr_path();
+  // @@protoc_insertion_point(field_mutable:proto.FileMeta.usr_path)
   return _s;
 }
-inline const std::string& FileMeta::_internal_path() const {
-  return _impl_.path_.Get();
+inline const std::string& FileMeta::_internal_usr_path() const {
+  return _impl_.usr_path_.Get();
 }
-inline void FileMeta::_internal_set_path(const std::string& value) {
+inline void FileMeta::_internal_set_usr_path(const std::string& value) {
   
-  _impl_.path_.Set(value, GetArenaForAllocation());
+  _impl_.usr_path_.Set(value, GetArenaForAllocation());
 }
-inline std::string* FileMeta::_internal_mutable_path() {
+inline std::string* FileMeta::_internal_mutable_usr_path() {
   
-  return _impl_.path_.Mutable(GetArenaForAllocation());
+  return _impl_.usr_path_.Mutable(GetArenaForAllocation());
 }
-inline std::string* FileMeta::release_path() {
-  // @@protoc_insertion_point(field_release:proto.FileMeta.path)
-  return _impl_.path_.Release();
+inline std::string* FileMeta::release_usr_path() {
+  // @@protoc_insertion_point(field_release:proto.FileMeta.usr_path)
+  return _impl_.usr_path_.Release();
 }
-inline void FileMeta::set_allocated_path(std::string* path) {
-  if (path != nullptr) {
+inline void FileMeta::set_allocated_usr_path(std::string* usr_path) {
+  if (usr_path != nullptr) {
     
   } else {
     
   }
-  _impl_.path_.SetAllocated(path, GetArenaForAllocation());
+  _impl_.usr_path_.SetAllocated(usr_path, GetArenaForAllocation());
 #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  if (_impl_.path_.IsDefault()) {
-    _impl_.path_.Set("", GetArenaForAllocation());
+  if (_impl_.usr_path_.IsDefault()) {
+    _impl_.usr_path_.Set("", GetArenaForAllocation());
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
-  // @@protoc_insertion_point(field_set_allocated:proto.FileMeta.path)
+  // @@protoc_insertion_point(field_set_allocated:proto.FileMeta.usr_path)
 }
 
-// string hash = 4;
+// string local_path = 5;
+inline void FileMeta::clear_local_path() {
+  _impl_.local_path_.ClearToEmpty();
+}
+inline const std::string& FileMeta::local_path() const {
+  // @@protoc_insertion_point(field_get:proto.FileMeta.local_path)
+  return _internal_local_path();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileMeta::set_local_path(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.local_path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileMeta.local_path)
+}
+inline std::string* FileMeta::mutable_local_path() {
+  std::string* _s = _internal_mutable_local_path();
+  // @@protoc_insertion_point(field_mutable:proto.FileMeta.local_path)
+  return _s;
+}
+inline const std::string& FileMeta::_internal_local_path() const {
+  return _impl_.local_path_.Get();
+}
+inline void FileMeta::_internal_set_local_path(const std::string& value) {
+  
+  _impl_.local_path_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileMeta::_internal_mutable_local_path() {
+  
+  return _impl_.local_path_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileMeta::release_local_path() {
+  // @@protoc_insertion_point(field_release:proto.FileMeta.local_path)
+  return _impl_.local_path_.Release();
+}
+inline void FileMeta::set_allocated_local_path(std::string* local_path) {
+  if (local_path != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.local_path_.SetAllocated(local_path, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.local_path_.IsDefault()) {
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileMeta.local_path)
+}
+
+// string hash = 6;
 inline void FileMeta::clear_hash() {
   _impl_.hash_.ClearToEmpty();
 }
@@ -573,6 +876,170 @@ inline void FileMeta::set_allocated_hash(std::string* hash) {
   }
 #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
   // @@protoc_insertion_point(field_set_allocated:proto.FileMeta.hash)
+}
+
+// -------------------------------------------------------------------
+
+// FileMetaResume
+
+// string usr_path = 1;
+inline void FileMetaResume::clear_usr_path() {
+  _impl_.usr_path_.ClearToEmpty();
+}
+inline const std::string& FileMetaResume::usr_path() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaResume.usr_path)
+  return _internal_usr_path();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileMetaResume::set_usr_path(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.usr_path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileMetaResume.usr_path)
+}
+inline std::string* FileMetaResume::mutable_usr_path() {
+  std::string* _s = _internal_mutable_usr_path();
+  // @@protoc_insertion_point(field_mutable:proto.FileMetaResume.usr_path)
+  return _s;
+}
+inline const std::string& FileMetaResume::_internal_usr_path() const {
+  return _impl_.usr_path_.Get();
+}
+inline void FileMetaResume::_internal_set_usr_path(const std::string& value) {
+  
+  _impl_.usr_path_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileMetaResume::_internal_mutable_usr_path() {
+  
+  return _impl_.usr_path_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileMetaResume::release_usr_path() {
+  // @@protoc_insertion_point(field_release:proto.FileMetaResume.usr_path)
+  return _impl_.usr_path_.Release();
+}
+inline void FileMetaResume::set_allocated_usr_path(std::string* usr_path) {
+  if (usr_path != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.usr_path_.SetAllocated(usr_path, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.usr_path_.IsDefault()) {
+    _impl_.usr_path_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileMetaResume.usr_path)
+}
+
+// string local_path = 2;
+inline void FileMetaResume::clear_local_path() {
+  _impl_.local_path_.ClearToEmpty();
+}
+inline const std::string& FileMetaResume::local_path() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaResume.local_path)
+  return _internal_local_path();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileMetaResume::set_local_path(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.local_path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileMetaResume.local_path)
+}
+inline std::string* FileMetaResume::mutable_local_path() {
+  std::string* _s = _internal_mutable_local_path();
+  // @@protoc_insertion_point(field_mutable:proto.FileMetaResume.local_path)
+  return _s;
+}
+inline const std::string& FileMetaResume::_internal_local_path() const {
+  return _impl_.local_path_.Get();
+}
+inline void FileMetaResume::_internal_set_local_path(const std::string& value) {
+  
+  _impl_.local_path_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileMetaResume::_internal_mutable_local_path() {
+  
+  return _impl_.local_path_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileMetaResume::release_local_path() {
+  // @@protoc_insertion_point(field_release:proto.FileMetaResume.local_path)
+  return _impl_.local_path_.Release();
+}
+inline void FileMetaResume::set_allocated_local_path(std::string* local_path) {
+  if (local_path != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.local_path_.SetAllocated(local_path, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.local_path_.IsDefault()) {
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileMetaResume.local_path)
+}
+
+// uint64 begin_idx = 3;
+inline void FileMetaResume::clear_begin_idx() {
+  _impl_.begin_idx_ = uint64_t{0u};
+}
+inline uint64_t FileMetaResume::_internal_begin_idx() const {
+  return _impl_.begin_idx_;
+}
+inline uint64_t FileMetaResume::begin_idx() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaResume.begin_idx)
+  return _internal_begin_idx();
+}
+inline void FileMetaResume::_internal_set_begin_idx(uint64_t value) {
+  
+  _impl_.begin_idx_ = value;
+}
+inline void FileMetaResume::set_begin_idx(uint64_t value) {
+  _internal_set_begin_idx(value);
+  // @@protoc_insertion_point(field_set:proto.FileMetaResume.begin_idx)
+}
+
+// uint64 file_size = 4;
+inline void FileMetaResume::clear_file_size() {
+  _impl_.file_size_ = uint64_t{0u};
+}
+inline uint64_t FileMetaResume::_internal_file_size() const {
+  return _impl_.file_size_;
+}
+inline uint64_t FileMetaResume::file_size() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaResume.file_size)
+  return _internal_file_size();
+}
+inline void FileMetaResume::_internal_set_file_size(uint64_t value) {
+  
+  _impl_.file_size_ = value;
+}
+inline void FileMetaResume::set_file_size(uint64_t value) {
+  _internal_set_file_size(value);
+  // @@protoc_insertion_point(field_set:proto.FileMetaResume.file_size)
+}
+
+// bool is_upload = 5;
+inline void FileMetaResume::clear_is_upload() {
+  _impl_.is_upload_ = false;
+}
+inline bool FileMetaResume::_internal_is_upload() const {
+  return _impl_.is_upload_;
+}
+inline bool FileMetaResume::is_upload() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaResume.is_upload)
+  return _internal_is_upload();
+}
+inline void FileMetaResume::_internal_set_is_upload(bool value) {
+  
+  _impl_.is_upload_ = value;
+}
+inline void FileMetaResume::set_is_upload(bool value) {
+  _internal_set_is_upload(value);
+  // @@protoc_insertion_point(field_set:proto.FileMetaResume.is_upload)
 }
 
 // -------------------------------------------------------------------
@@ -672,6 +1139,8 @@ inline void FileTrunk::set_allocated_data(std::string* data) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 

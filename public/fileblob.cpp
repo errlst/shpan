@@ -2,33 +2,40 @@
 #include <crypto++/sha3.h>
 #include <iostream>
 
-FileBlob::FileBlob(const std::string &path) : id_{++NEXT_ID}, path_{path} {
-    fs_.open(path, std::ios_base::in | std::ios_base::binary | std::ios_base::ate);
+FileBlob::FileBlob(const std::string &path, uint64_t unused_trunk_begin) : id_{++NEXT_ID}, path_{path} {
+    fs_.open(path, std::ios_base::in | std::ios_base::out | std::ios_base::binary | std::ios_base::ate);
     if (!fs_.is_open()) {
         return;
     }
 
-    uint64_t file_size = fs_.tellg();
+    file_size_ = fs_.tellg();
     fs_.seekg(0);
-    if (file_size <= 0) {
+    if (file_size_ <= 0) {
         return;
     }
 
-    trunk_count_ = file_size / TRUNK_SIZE + ((file_size % TRUNK_SIZE) != 0);
-    last_trunk_size_ = file_size - (trunk_count_ - 1) * TRUNK_SIZE;
-    init_unused_trunks();
+    trunk_count_ = file_size_ / TRUNK_SIZE + ((file_size_ % TRUNK_SIZE) != 0);
+    last_trunk_size_ = file_size_ - (trunk_count_ - 1) * TRUNK_SIZE;
+
+    init_unused_trunks(unused_trunk_begin);
 }
 
-FileBlob::FileBlob(const std::string &path, uint64_t file_size) : id_{++NEXT_ID}, path_{path} {
-    fs_.open(path, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+FileBlob::FileBlob(const std::string &path, uint64_t file_size, uint64_t unused_trunk_begin)
+    : id_{++NEXT_ID}, file_size_{file_size}, path_{path} {
+    if (unused_trunk_begin == 0) {
+        fs_.open(path, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
+    } else {
+        fs_.open(path, std::ios_base::out | std::ios_base::binary | std::ios_base::app);
+    }
     if (!fs_.is_open()) {
         return;
     }
     fs_.seekp(0);
 
-    trunk_count_ = file_size / TRUNK_SIZE + ((file_size % TRUNK_SIZE) != 0);
-    last_trunk_size_ = file_size - (trunk_count_ - 1) * TRUNK_SIZE;
-    init_unused_trunks();
+    trunk_count_ = file_size_ / TRUNK_SIZE + ((file_size_ % TRUNK_SIZE) != 0);
+    last_trunk_size_ = file_size_ - (trunk_count_ - 1) * TRUNK_SIZE;
+
+    init_unused_trunks(unused_trunk_begin);
 }
 
 auto FileBlob::path() -> const std::string & { return path_; }
@@ -84,8 +91,8 @@ auto FileBlob::file_hash() -> const std::string & {
     return file_hash_;
 }
 
-auto FileBlob::init_unused_trunks() -> void {
-    for (uint64_t i = 0; i < trunk_count_; ++i) {
+auto FileBlob::init_unused_trunks(uint64_t trunk_begin) -> void {
+    for (auto i = trunk_begin; i < trunk_count_; ++i) {
         unused_trunks_.emplace(i);
     }
 }

@@ -136,12 +136,12 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
         return nullptr;
     }
 
-    auto blob = std::make_shared<FileBlob>(local_path);
+    auto blob = std::make_shared<FileBlob>(local_path, 0);
     up_cbs[blob->id()] = [=] { up_fbs[blob->id()] = blob; };
 
     auto file_meta = proto::FileMeta{};
-    file_meta.set_id(blob->id());
-    file_meta.set_path(usr_path);
+    file_meta.set_usr_path(usr_path);
+    file_meta.set_local_path(local_path);
     file_meta.set_size(std::filesystem::file_size(local_path));
     file_meta.set_hash(blob->file_hash());
 
@@ -150,8 +150,8 @@ auto upload_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack> 
         Log::error("file_meta serialize failed");
         return nullptr;
     }
-    Log::debug(std::format("file_meta : path {}, size {}, hash {}, bytes {}", file_meta.path(), file_meta.size(),
-                           file_meta.hash(), s_pack->data_size));
+    Log::debug(std::format("file_meta : usr_path {}, local_path {}, size {}, hash {}, bytes {}", file_meta.usr_path(),
+                           file_meta.usr_path(), file_meta.size(), file_meta.hash(), s_pack->data_size));
     return s_pack;
 }
 
@@ -202,7 +202,7 @@ auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack
 
     down_meta_cbs[usr_path] = [=](proto::FileMeta meta) {
         Log::debug("down meta cb call");
-        auto blob = std::make_shared<FileBlob>(local_path.string(), meta.size());
+        auto blob = std::make_shared<FileBlob>(local_path.string(), meta.size(), 0);
         {
             auto lock = std::lock_guard{down_mut};
             down_fbs.emplace(meta.id(), blob);
@@ -210,7 +210,12 @@ auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack
         start_download_trunk();
     };
 
-    return create_pack_with_str_msg(Api::DOWNLOAD_META, 0, usr_path);
+    auto s_meta = proto::FileMeta{};
+    s_meta.set_usr_path(usr_path);
+    s_meta.set_local_path(local_path);
+    auto s_pack = create_pack_with_size(Api::DOWNLOAD_META, 0, s_meta.ByteSizeLong());
+    s_meta.SerializeToArray(s_pack->data, s_pack->data_size);
+    return s_pack;
 }
 
 const auto reqs = std::map<std::string, req_handle_t>{
@@ -415,8 +420,8 @@ auto recv_download_meta(std::shared_ptr<Pack> r_pack) -> void {
         return;
     }
 
-    Log::info(std::format("download meta success, {} {} {} {}", meta.id(), meta.size(), meta.path(), meta.hash()));
-    down_meta_cbs[meta.path()](meta);
+    Log::info(std::format("download meta success, {} {} {} {}", meta.id(), meta.size(), meta.usr_path(), meta.hash()));
+    down_meta_cbs[meta.usr_path()](meta);
 }
 
 auto recv_download_trunk(std::shared_ptr<Pack> r_pack) -> void {
@@ -438,10 +443,72 @@ auto recv_download_trunk(std::shared_ptr<Pack> r_pack) -> void {
 
     cur_down_fb.second->write(trunk.data(), trunk.idx());
     cur_down_fb.second->set_trunk_used(trunk.idx());
-    Log::info(std::format("download trunk id:{} idx:{}", trunk.id(), trunk.idx()));
+    Log::info(std::format("download trunk id:{} idx:{}, left:{}", trunk.id(), trunk.idx(),
+                          cur_down_fb.second->unused_trunks().size()));
     if (cur_down_fb.second->unused_trunks().empty()) {
         Log::info(std::format("download trunk id:{} finished", trunk.id()));
     }
+}
+
+auto recv_resume_trans(std::shared_ptr<Pack> r_pack) -> void {
+    auto r_meta = proto::FileMetaResume{};
+    r_meta.ParseFromArray(r_pack->data, r_pack->data_size);
+    Log::info(std::format("resume usr_path:{}, local_path:{} begin_idx:{}, file_size:{}", r_meta.usr_path(),
+                          r_meta.local_path(), r_meta.begin_idx(), r_meta.file_size()));
+
+    // 检查本地文件是否存在
+    if (!std::filesystem::exists(r_meta.local_path())) {
+        Log::error(std::format("local file not exists, stop resume"));
+        return;
+    }
+
+    // 上传元数据
+    if (r_meta.is_upload()) {
+        if (!std::filesystem::exists(r_meta.local_path())) {
+            std::cout << "invalid local path\n";
+            return;
+        }
+
+        auto blob = std::make_shared<FileBlob>(r_meta.local_path(), r_meta.begin_idx());
+        up_cbs[blob->id()] = [=] { up_fbs[blob->id()] = blob; };
+
+        auto s_meta = proto::FileMeta{};
+        s_meta.set_id(blob->id());
+        s_meta.set_usr_path(r_meta.usr_path());
+        s_meta.set_local_path(r_meta.local_path());
+        s_meta.set_size(r_meta.file_size());
+        s_meta.set_hash(blob->file_hash());
+
+        auto s_pack = create_pack_with_size(Api::UPLOAD_META, true, s_meta.ByteSizeLong());
+        if (!s_meta.SerializeToArray(s_pack->data, s_pack->data_size)) {
+            Log::error("file_meta serialize failed");
+            return;
+        }
+        Log::debug(std::format("file_meta : usr_path {}, local_path {}, size {}, hash {}, bytes {}", s_meta.usr_path(),
+                               s_meta.usr_path(), s_meta.size(), s_meta.hash(), s_pack->data_size));
+        return;
+    }
+
+    // 下载元数据
+    down_meta_cbs[r_meta.usr_path()] = [=](proto::FileMeta meta) {
+        Log::debug("down meta cb call");
+        auto blob = std::make_shared<FileBlob>(r_meta.local_path(), meta.size(), r_meta.begin_idx());
+        {
+            auto lock = std::lock_guard{down_mut};
+            down_fbs.emplace(meta.id(), blob);
+        }
+        start_download_trunk();
+    };
+
+    auto s_meta = proto::FileMeta{};
+    s_meta.set_usr_path(r_meta.usr_path());
+    s_meta.set_local_path(r_meta.local_path());
+    s_meta.set_begin_idx(r_meta.begin_idx());
+    auto s_pack = create_pack_with_size(Api::DOWNLOAD_META, 0, s_meta.ByteSizeLong());
+    s_meta.SerializeToArray(s_pack->data, s_pack->data_size);
+    asio::write(*sock, asio::const_buffer(s_pack.get(), sizeof(Pack) + s_pack->data_size));
+
+    // auto blob = std::make_shared<FileBlob>(r_meta.local_path())
 }
 
 const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist},
@@ -451,14 +518,15 @@ const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist
                                                        {Api::UPLOAD_META, recv_upload_meta},
                                                        {Api::UPLOAD_TRUNK, recv_upload_trunk},
                                                        {Api::DOWNLOAD_META, recv_download_meta},
-                                                       {Api::DOWNLOAD_TRUNK, recv_download_trunk}};
+                                                       {Api::DOWNLOAD_TRUNK, recv_download_trunk},
+                                                       {Api::RESUME_TRANS, recv_resume_trans}};
 
 auto slove_recv(std::shared_ptr<asio::ip::tcp::socket> sock) -> void {
     try {
         auto pack_meta = Pack{};
         while (true) {
             asio::read(*sock, asio::buffer(&pack_meta, sizeof(pack_meta)));
-            Log::debug(std::format("recv meta api = {}, state = {}, data_size = {}]", api_to_string(pack_meta.api),
+            Log::debug(std::format("recv meta api = {}, state = {}, data_size = {}", api_to_string(pack_meta.api),
                                    pack_meta.state, pack_meta.data_size));
 
             auto s_pack = create_pack_with_meta(pack_meta);
@@ -467,6 +535,8 @@ auto slove_recv(std::shared_ptr<asio::ip::tcp::socket> sock) -> void {
 
             if (recv_handles.contains(s_pack->api)) {
                 recv_handles.at(s_pack->api)(s_pack);
+            } else {
+                Log::debug(std::format("unhandled recv {}, {}", api_to_string(s_pack->api), s_pack->data_size));
             }
         }
     } catch (std::exception &e) {
