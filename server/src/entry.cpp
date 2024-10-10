@@ -21,9 +21,15 @@ auto Entry::find(uint64_t id) -> std::expected<Entry, std::string> {
     auto query = SqlPoll::instance().query_one(std::format("select * from entry_table where id = {}", id));
     CHECK_EXPECT_OK(query);
 
+    auto shared_str = std::string{};
+    auto shared = SqlPoll::instance().query_one(std::format("select * from shared_link_table where entry_id = {}", id));
+    if (shared.has_value()) {
+        shared_str = (*shared.value()->begin()).get<std::string>(0);
+    }
+
     auto it = query.value()->begin();
     return Entry{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
-                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""};
+                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), shared_str};
 }
 
 auto Entry::find(const std::string &path) -> std::expected<Entry, std::string> {
@@ -31,8 +37,16 @@ auto Entry::find(const std::string &path) -> std::expected<Entry, std::string> {
     CHECK_EXPECT_OK(query);
 
     auto it = query.value()->begin();
+
+    auto shared_str = std::string{};
+    auto shared = SqlPoll::instance().query_one(std::format("select * from shared_link_table where entry_id = {}",
+                                                            static_cast<uint64_t>((*it).get<long long>(0))));
+    if (shared.has_value()) {
+        shared_str = (*shared.value()->begin()).get<std::string>(0);
+    }
+
     return Entry{static_cast<uint64_t>((*it).get<long long>(0)), static_cast<uint64_t>((*it).get<long long>(1)),
-                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""};
+                 static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), shared_str};
 }
 
 auto Entry::remove(uint64_t id) -> std::expected<void, std::string> {
@@ -92,9 +106,16 @@ auto Entry::childred() -> std::expected<std::vector<Entry>, std::string> {
 
     auto res = std::vector<Entry>{};
     for (auto it = childred.value()->begin(); it != childred.value()->end(); ++it) {
+        auto shared_str = std::string{};
+        auto shared = SqlPoll::instance().query_one(std::format("select * from shared_link_table where entry_id = {}",
+                                                                static_cast<uint64_t>((*it).get<long long>(0))));
+        if (shared.has_value()) {
+            shared_str = (*shared.value()->begin()).get<std::string>(0);
+        }
+
         res.push_back(Entry{static_cast<uint64_t>((*it).get<long long>(0)),
                             static_cast<uint64_t>((*it).get<long long>(1)),
-                            static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), ""});
+                            static_cast<uint64_t>((*it).get<long long>(2)), (*it).get<std::string>(3), shared_str});
     }
     return res;
 }

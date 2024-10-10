@@ -20,6 +20,12 @@ message FileMetaResume {
     bool is_upload = 5;
 };
 
+// 客户端请求下载共享时需要
+message FileMetaShared {
+    string link = 1;
+    string local_path = 2;
+};
+
 //
 message FileTrunk {
     uint64 id = 1;  // 所属 fileblob 的id

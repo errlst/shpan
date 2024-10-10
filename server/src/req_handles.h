@@ -558,6 +558,87 @@ static auto download_trunk(std::shared_ptr<Connection> conn, std::shared_ptr<Pac
     return s_pack;
 }
 
+// 参数：usr_path
+static auto make_shared(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) -> std::shared_ptr<Pack> {
+    check_logined();
+
+    auto usr = std::any_cast<User>(conn->ext_data().at("user")).email();
+    auto usr_path = std::string{r_pack->data, r_pack->data_size};
+    auto entry = Entry::find(usr + usr_path);
+    if (!entry.has_value()) {
+        Log::error(std::format("make shared failed, {}", entry.error()));
+        return create_pack_with_str_msg(r_pack->api, 0, "");
+    }
+
+    if (auto n = entry->create_shared_link(100); !n.has_value()) {
+        Log::error(std::format("make shared failed, {}", n.error()));
+        return create_pack_with_str_msg(r_pack->api, 0, "");
+    }
+
+    return create_pack_with_str_msg(r_pack->api, 1, "");
+}
+
+// 参数：共享链接
+// 返回：proto::FileMeta
+static auto shared_meta(std::shared_ptr<Connection> conn, std::shared_ptr<Pack> r_pack) -> std::shared_ptr<Pack> {
+    check_logined();
+    auto cur_usr = std::any_cast<User>(conn->ext_data().at("user")).email();
+
+    auto r_meta = proto::FileMetaShared{};
+    if (!r_meta.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        Log::error("invalid argument");
+        return create_pack_with_str_msg(r_pack->api, 0, "invalid argument");
+    }
+
+    auto query =
+        SqlPoll::instance().query_one(std::format("select * from shared_link_table where link='{}'", r_meta.link()));
+    if (!query.has_value()) {
+        Log::info("invalid shared link");
+        return create_pack_with_str_msg(r_pack->api, 0, "inavlid link");
+    }
+    auto it = query.value()->begin();
+    auto link = (*it).get<std::string>(0);
+    auto entry_id = static_cast<uint64_t>((*it).get<long long>(1));
+
+    auto f_entry = Entry::find(entry_id);
+    if (!f_entry.has_value()) {
+        Log::error(std::format("req from {}, invalid path {}", conn->address(),
+                               std::string_view{r_pack->data, r_pack->data_size}));
+        return create_pack_with_str_msg(r_pack->api, 0, "invalid path");
+    }
+    if (f_entry->is_directory()) {
+        Log::error(std::format("req from {}, path is dir {}", conn->address(),
+                               std::string_view{r_pack->data, r_pack->data_size}));
+        return create_pack_with_str_msg(r_pack->api, 0, "path is dir");
+    }
+
+    auto f_ref = FileRef::find(f_entry->ref_id());
+    if (!f_ref.has_value()) {
+        Log::error(std::format("req from {}, file ref invalid {}", conn->address(),
+                               std::string_view{r_pack->data, r_pack->data_size}));
+        return create_pack_with_str_msg(r_pack->api, 0, "file ref invalid");
+    }
+
+    if (!conn->ext_data().contains("down_fbs")) {
+        conn->ext_data()["down_fbs"] = fbs_t{};
+    }
+    auto blob = std::make_shared<FileBlob>(f_ref->file_path(), 0);
+    std::any_cast<fbs_t &>(conn->ext_data()["down_fbs"])[blob->id()] = std::make_tuple(
+        blob, f_ref->file_path(), f_entry->path().substr(f_entry->path().find_first_of('/')), r_meta.local_path());
+
+    auto s_meta = proto::FileMeta{};
+    s_meta.set_id(blob->id());
+    s_meta.set_size(std::filesystem::file_size(f_ref->file_path()));
+    s_meta.set_usr_path(f_entry->path().substr(f_entry->path().find_first_of('/')));
+    s_meta.set_hash(blob->file_hash());
+    s_meta.set_local_path(r_meta.local_path());
+    auto s_pack = create_pack_with_size(r_pack->api, 1, s_meta.ByteSizeLong());
+    s_meta.SerializeToArray(s_pack->data, s_pack->data_size);
+    Log::info(std::format("req from {} down meta success, {} {} {} {}", conn->address(), s_meta.id(), s_meta.size(),
+                          s_meta.usr_path(), s_meta.hash()));
+    return s_pack;
+}
+
 static const auto req_handles = std::map<Api, handle_t>{{Api::REGIST, regist},
                                                         {Api::LOGIN, login},
                                                         {Api::LOGOUT, logout},
@@ -566,6 +647,8 @@ static const auto req_handles = std::map<Api, handle_t>{{Api::REGIST, regist},
                                                         {Api::UPLOAD_META, upload_meta},
                                                         {Api::UPLOAD_TRUNK, upload_trunk},
                                                         {Api::DOWNLOAD_META, download_meta},
-                                                        {Api::DOWNLOAD_TRUNK, download_trunk}};
+                                                        {Api::DOWNLOAD_TRUNK, download_trunk},
+                                                        {Api::MAKE_SHARED, make_shared},
+                                                        {Api::SHARED_META, shared_meta}};
 
 #undef check_logined

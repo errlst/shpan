@@ -51,6 +51,9 @@ extern FileMetaDefaultTypeInternal _FileMeta_default_instance_;
 class FileMetaResume;
 struct FileMetaResumeDefaultTypeInternal;
 extern FileMetaResumeDefaultTypeInternal _FileMetaResume_default_instance_;
+class FileMetaShared;
+struct FileMetaSharedDefaultTypeInternal;
+extern FileMetaSharedDefaultTypeInternal _FileMetaShared_default_instance_;
 class FileTrunk;
 struct FileTrunkDefaultTypeInternal;
 extern FileTrunkDefaultTypeInternal _FileTrunk_default_instance_;
@@ -58,6 +61,7 @@ extern FileTrunkDefaultTypeInternal _FileTrunk_default_instance_;
 PROTOBUF_NAMESPACE_OPEN
 template<> ::proto::FileMeta* Arena::CreateMaybeMessage<::proto::FileMeta>(Arena*);
 template<> ::proto::FileMetaResume* Arena::CreateMaybeMessage<::proto::FileMetaResume>(Arena*);
+template<> ::proto::FileMetaShared* Arena::CreateMaybeMessage<::proto::FileMetaShared>(Arena*);
 template<> ::proto::FileTrunk* Arena::CreateMaybeMessage<::proto::FileTrunk>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
 namespace proto {
@@ -484,6 +488,175 @@ class FileMetaResume final :
 };
 // -------------------------------------------------------------------
 
+class FileMetaShared final :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proto.FileMetaShared) */ {
+ public:
+  inline FileMetaShared() : FileMetaShared(nullptr) {}
+  ~FileMetaShared() override;
+  explicit PROTOBUF_CONSTEXPR FileMetaShared(::PROTOBUF_NAMESPACE_ID::internal::ConstantInitialized);
+
+  FileMetaShared(const FileMetaShared& from);
+  FileMetaShared(FileMetaShared&& from) noexcept
+    : FileMetaShared() {
+    *this = ::std::move(from);
+  }
+
+  inline FileMetaShared& operator=(const FileMetaShared& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline FileMetaShared& operator=(FileMetaShared&& from) noexcept {
+    if (this == &from) return *this;
+    if (GetOwningArena() == from.GetOwningArena()
+  #ifdef PROTOBUF_FORCE_COPY_IN_MOVE
+        && GetOwningArena() != nullptr
+  #endif  // !PROTOBUF_FORCE_COPY_IN_MOVE
+    ) {
+      InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return default_instance().GetMetadata().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return default_instance().GetMetadata().reflection;
+  }
+  static const FileMetaShared& default_instance() {
+    return *internal_default_instance();
+  }
+  static inline const FileMetaShared* internal_default_instance() {
+    return reinterpret_cast<const FileMetaShared*>(
+               &_FileMetaShared_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    2;
+
+  friend void swap(FileMetaShared& a, FileMetaShared& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(FileMetaShared* other) {
+    if (other == this) return;
+  #ifdef PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() != nullptr &&
+        GetOwningArena() == other->GetOwningArena()) {
+   #else  // PROTOBUF_FORCE_COPY_IN_SWAP
+    if (GetOwningArena() == other->GetOwningArena()) {
+  #endif  // !PROTOBUF_FORCE_COPY_IN_SWAP
+      InternalSwap(other);
+    } else {
+      ::PROTOBUF_NAMESPACE_ID::internal::GenericSwap(this, other);
+    }
+  }
+  void UnsafeArenaSwap(FileMetaShared* other) {
+    if (other == this) return;
+    GOOGLE_DCHECK(GetOwningArena() == other->GetOwningArena());
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  FileMetaShared* New(::PROTOBUF_NAMESPACE_ID::Arena* arena = nullptr) const final {
+    return CreateMaybeMessage<FileMetaShared>(arena);
+  }
+  using ::PROTOBUF_NAMESPACE_ID::Message::CopyFrom;
+  void CopyFrom(const FileMetaShared& from);
+  using ::PROTOBUF_NAMESPACE_ID::Message::MergeFrom;
+  void MergeFrom( const FileMetaShared& from) {
+    FileMetaShared::MergeImpl(*this, from);
+  }
+  private:
+  static void MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg);
+  public:
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  uint8_t* _InternalSerialize(
+      uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _impl_._cached_size_.Get(); }
+
+  private:
+  void SharedCtor(::PROTOBUF_NAMESPACE_ID::Arena* arena, bool is_message_owned);
+  void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(FileMetaShared* other);
+
+  private:
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "proto.FileMetaShared";
+  }
+  protected:
+  explicit FileMetaShared(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                       bool is_message_owned = false);
+  public:
+
+  static const ClassData _class_data_;
+  const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*GetClassData() const final;
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kLinkFieldNumber = 1,
+    kLocalPathFieldNumber = 2,
+  };
+  // string link = 1;
+  void clear_link();
+  const std::string& link() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_link(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_link();
+  PROTOBUF_NODISCARD std::string* release_link();
+  void set_allocated_link(std::string* link);
+  private:
+  const std::string& _internal_link() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_link(const std::string& value);
+  std::string* _internal_mutable_link();
+  public:
+
+  // string local_path = 2;
+  void clear_local_path();
+  const std::string& local_path() const;
+  template <typename ArgT0 = const std::string&, typename... ArgT>
+  void set_local_path(ArgT0&& arg0, ArgT... args);
+  std::string* mutable_local_path();
+  PROTOBUF_NODISCARD std::string* release_local_path();
+  void set_allocated_local_path(std::string* local_path);
+  private:
+  const std::string& _internal_local_path() const;
+  inline PROTOBUF_ALWAYS_INLINE void _internal_set_local_path(const std::string& value);
+  std::string* _internal_mutable_local_path();
+  public:
+
+  // @@protoc_insertion_point(class_scope:proto.FileMetaShared)
+ private:
+  class _Internal;
+
+  template <typename T> friend class ::PROTOBUF_NAMESPACE_ID::Arena::InternalHelper;
+  typedef void InternalArenaConstructable_;
+  typedef void DestructorSkippable_;
+  struct Impl_ {
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr link_;
+    ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr local_path_;
+    mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  };
+  union { Impl_ _impl_; };
+  friend struct ::TableStruct_file_2eproto;
+};
+// -------------------------------------------------------------------
+
 class FileTrunk final :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:proto.FileTrunk) */ {
  public:
@@ -532,7 +705,7 @@ class FileTrunk final :
                &_FileTrunk_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    2;
+    3;
 
   friend void swap(FileTrunk& a, FileTrunk& b) {
     a.Swap(&b);
@@ -1044,6 +1217,110 @@ inline void FileMetaResume::set_is_upload(bool value) {
 
 // -------------------------------------------------------------------
 
+// FileMetaShared
+
+// string link = 1;
+inline void FileMetaShared::clear_link() {
+  _impl_.link_.ClearToEmpty();
+}
+inline const std::string& FileMetaShared::link() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaShared.link)
+  return _internal_link();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileMetaShared::set_link(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.link_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileMetaShared.link)
+}
+inline std::string* FileMetaShared::mutable_link() {
+  std::string* _s = _internal_mutable_link();
+  // @@protoc_insertion_point(field_mutable:proto.FileMetaShared.link)
+  return _s;
+}
+inline const std::string& FileMetaShared::_internal_link() const {
+  return _impl_.link_.Get();
+}
+inline void FileMetaShared::_internal_set_link(const std::string& value) {
+  
+  _impl_.link_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileMetaShared::_internal_mutable_link() {
+  
+  return _impl_.link_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileMetaShared::release_link() {
+  // @@protoc_insertion_point(field_release:proto.FileMetaShared.link)
+  return _impl_.link_.Release();
+}
+inline void FileMetaShared::set_allocated_link(std::string* link) {
+  if (link != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.link_.SetAllocated(link, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.link_.IsDefault()) {
+    _impl_.link_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileMetaShared.link)
+}
+
+// string local_path = 2;
+inline void FileMetaShared::clear_local_path() {
+  _impl_.local_path_.ClearToEmpty();
+}
+inline const std::string& FileMetaShared::local_path() const {
+  // @@protoc_insertion_point(field_get:proto.FileMetaShared.local_path)
+  return _internal_local_path();
+}
+template <typename ArgT0, typename... ArgT>
+inline PROTOBUF_ALWAYS_INLINE
+void FileMetaShared::set_local_path(ArgT0&& arg0, ArgT... args) {
+ 
+ _impl_.local_path_.Set(static_cast<ArgT0 &&>(arg0), args..., GetArenaForAllocation());
+  // @@protoc_insertion_point(field_set:proto.FileMetaShared.local_path)
+}
+inline std::string* FileMetaShared::mutable_local_path() {
+  std::string* _s = _internal_mutable_local_path();
+  // @@protoc_insertion_point(field_mutable:proto.FileMetaShared.local_path)
+  return _s;
+}
+inline const std::string& FileMetaShared::_internal_local_path() const {
+  return _impl_.local_path_.Get();
+}
+inline void FileMetaShared::_internal_set_local_path(const std::string& value) {
+  
+  _impl_.local_path_.Set(value, GetArenaForAllocation());
+}
+inline std::string* FileMetaShared::_internal_mutable_local_path() {
+  
+  return _impl_.local_path_.Mutable(GetArenaForAllocation());
+}
+inline std::string* FileMetaShared::release_local_path() {
+  // @@protoc_insertion_point(field_release:proto.FileMetaShared.local_path)
+  return _impl_.local_path_.Release();
+}
+inline void FileMetaShared::set_allocated_local_path(std::string* local_path) {
+  if (local_path != nullptr) {
+    
+  } else {
+    
+  }
+  _impl_.local_path_.SetAllocated(local_path, GetArenaForAllocation());
+#ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (_impl_.local_path_.IsDefault()) {
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  }
+#endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  // @@protoc_insertion_point(field_set_allocated:proto.FileMetaShared.local_path)
+}
+
+// -------------------------------------------------------------------
+
 // FileTrunk
 
 // uint64 id = 1;
@@ -1139,6 +1416,8 @@ inline void FileTrunk::set_allocated_data(std::string* data) {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

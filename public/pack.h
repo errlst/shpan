@@ -15,6 +15,8 @@ enum class Api : uint8_t {
     DOWNLOAD_META,
     DOWNLOAD_TRUNK,
     RESUME_TRANS, // 断点续传（服务端发送请求
+    MAKE_SHARED,  // 创建共享
+    SHARED_META,  // 下载共享
 
     MAX_INVALID
 };
@@ -41,6 +43,10 @@ static auto api_to_string(Api api) -> std::string {
         return "download_trunk";
     case Api::RESUME_TRANS:
         return "resume_trans";
+    case Api::MAKE_SHARED:
+        return "make shared";
+    case Api::SHARED_META:
+        return "shared meta";
     default:
         return "invalid";
     }

@@ -56,6 +56,20 @@ struct FileMetaResumeDefaultTypeInternal {
   };
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileMetaResumeDefaultTypeInternal _FileMetaResume_default_instance_;
+PROTOBUF_CONSTEXPR FileMetaShared::FileMetaShared(
+    ::_pbi::ConstantInitialized): _impl_{
+    /*decltype(_impl_.link_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_.local_path_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
+  , /*decltype(_impl_._cached_size_)*/{}} {}
+struct FileMetaSharedDefaultTypeInternal {
+  PROTOBUF_CONSTEXPR FileMetaSharedDefaultTypeInternal()
+      : _instance(::_pbi::ConstantInitialized{}) {}
+  ~FileMetaSharedDefaultTypeInternal() {}
+  union {
+    FileMetaShared _instance;
+  };
+};
+PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileMetaSharedDefaultTypeInternal _FileMetaShared_default_instance_;
 PROTOBUF_CONSTEXPR FileTrunk::FileTrunk(
     ::_pbi::ConstantInitialized): _impl_{
     /*decltype(_impl_.data_)*/{&::_pbi::fixed_address_empty_string, ::_pbi::ConstantInitialized{}}
@@ -72,7 +86,7 @@ struct FileTrunkDefaultTypeInternal {
 };
 PROTOBUF_ATTRIBUTE_NO_DESTROY PROTOBUF_CONSTINIT PROTOBUF_ATTRIBUTE_INIT_PRIORITY1 FileTrunkDefaultTypeInternal _FileTrunk_default_instance_;
 }  // namespace proto
-static ::_pb::Metadata file_level_metadata_file_2eproto[3];
+static ::_pb::Metadata file_level_metadata_file_2eproto[4];
 static constexpr ::_pb::EnumDescriptor const** file_level_enum_descriptors_file_2eproto = nullptr;
 static constexpr ::_pb::ServiceDescriptor const** file_level_service_descriptors_file_2eproto = nullptr;
 
@@ -101,6 +115,14 @@ const uint32_t TableStruct_file_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
   PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.file_size_),
   PROTOBUF_FIELD_OFFSET(::proto::FileMetaResume, _impl_.is_upload_),
   ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaShared, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  ~0u,  // no _inlined_string_donated_
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaShared, _impl_.link_),
+  PROTOBUF_FIELD_OFFSET(::proto::FileMetaShared, _impl_.local_path_),
+  ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::proto::FileTrunk, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
@@ -113,12 +135,14 @@ const uint32_t TableStruct_file_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(pro
 static const ::_pbi::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, -1, sizeof(::proto::FileMeta)},
   { 12, -1, -1, sizeof(::proto::FileMetaResume)},
-  { 23, -1, -1, sizeof(::proto::FileTrunk)},
+  { 23, -1, -1, sizeof(::proto::FileMetaShared)},
+  { 31, -1, -1, sizeof(::proto::FileTrunk)},
 };
 
 static const ::_pb::Message* const file_default_instances[] = {
   &::proto::_FileMeta_default_instance_._instance,
   &::proto::_FileMetaResume_default_instance_._instance,
+  &::proto::_FileMetaShared_default_instance_._instance,
   &::proto::_FileTrunk_default_instance_._instance,
 };
 
@@ -129,14 +153,15 @@ const char descriptor_table_protodef_file_2eproto[] PROTOBUF_SECTION_VARIABLE(pr
   "sh\030\006 \001(\t\"o\n\016FileMetaResume\022\020\n\010usr_path\030\001"
   " \001(\t\022\022\n\nlocal_path\030\002 \001(\t\022\021\n\tbegin_idx\030\003 "
   "\001(\004\022\021\n\tfile_size\030\004 \001(\004\022\021\n\tis_upload\030\005 \001("
-  "\010\"2\n\tFileTrunk\022\n\n\002id\030\001 \001(\004\022\013\n\003idx\030\002 \001(\004\022"
-  "\014\n\004data\030\003 \001(\014b\006proto3"
+  "\010\"2\n\016FileMetaShared\022\014\n\004link\030\001 \001(\t\022\022\n\nloc"
+  "al_path\030\002 \001(\t\"2\n\tFileTrunk\022\n\n\002id\030\001 \001(\004\022\013"
+  "\n\003idx\030\002 \001(\004\022\014\n\004data\030\003 \001(\014b\006proto3"
   ;
 static ::_pbi::once_flag descriptor_table_file_2eproto_once;
 const ::_pbi::DescriptorTable descriptor_table_file_2eproto = {
-    false, false, 301, descriptor_table_protodef_file_2eproto,
+    false, false, 353, descriptor_table_protodef_file_2eproto,
     "file.proto",
-    &descriptor_table_file_2eproto_once, nullptr, 0, 3,
+    &descriptor_table_file_2eproto_once, nullptr, 0, 4,
     schemas, file_default_instances, TableStruct_file_2eproto::offsets,
     file_level_metadata_file_2eproto, file_level_enum_descriptors_file_2eproto,
     file_level_service_descriptors_file_2eproto,
@@ -875,6 +900,259 @@ void FileMetaResume::InternalSwap(FileMetaResume* other) {
 
 // ===================================================================
 
+class FileMetaShared::_Internal {
+ public:
+};
+
+FileMetaShared::FileMetaShared(::PROTOBUF_NAMESPACE_ID::Arena* arena,
+                         bool is_message_owned)
+  : ::PROTOBUF_NAMESPACE_ID::Message(arena, is_message_owned) {
+  SharedCtor(arena, is_message_owned);
+  // @@protoc_insertion_point(arena_constructor:proto.FileMetaShared)
+}
+FileMetaShared::FileMetaShared(const FileMetaShared& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message() {
+  FileMetaShared* const _this = this; (void)_this;
+  new (&_impl_) Impl_{
+      decltype(_impl_.link_){}
+    , decltype(_impl_.local_path_){}
+    , /*decltype(_impl_._cached_size_)*/{}};
+
+  _internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+  _impl_.link_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.link_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_link().empty()) {
+    _this->_impl_.link_.Set(from._internal_link(), 
+      _this->GetArenaForAllocation());
+  }
+  _impl_.local_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  if (!from._internal_local_path().empty()) {
+    _this->_impl_.local_path_.Set(from._internal_local_path(), 
+      _this->GetArenaForAllocation());
+  }
+  // @@protoc_insertion_point(copy_constructor:proto.FileMetaShared)
+}
+
+inline void FileMetaShared::SharedCtor(
+    ::_pb::Arena* arena, bool is_message_owned) {
+  (void)arena;
+  (void)is_message_owned;
+  new (&_impl_) Impl_{
+      decltype(_impl_.link_){}
+    , decltype(_impl_.local_path_){}
+    , /*decltype(_impl_._cached_size_)*/{}
+  };
+  _impl_.link_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.link_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+  _impl_.local_path_.InitDefault();
+  #ifdef PROTOBUF_FORCE_COPY_DEFAULT_STRING
+    _impl_.local_path_.Set("", GetArenaForAllocation());
+  #endif // PROTOBUF_FORCE_COPY_DEFAULT_STRING
+}
+
+FileMetaShared::~FileMetaShared() {
+  // @@protoc_insertion_point(destructor:proto.FileMetaShared)
+  if (auto *arena = _internal_metadata_.DeleteReturnArena<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>()) {
+  (void)arena;
+    return;
+  }
+  SharedDtor();
+}
+
+inline void FileMetaShared::SharedDtor() {
+  GOOGLE_DCHECK(GetArenaForAllocation() == nullptr);
+  _impl_.link_.Destroy();
+  _impl_.local_path_.Destroy();
+}
+
+void FileMetaShared::SetCachedSize(int size) const {
+  _impl_._cached_size_.Set(size);
+}
+
+void FileMetaShared::Clear() {
+// @@protoc_insertion_point(message_clear_start:proto.FileMetaShared)
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  _impl_.link_.ClearToEmpty();
+  _impl_.local_path_.ClearToEmpty();
+  _internal_metadata_.Clear<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>();
+}
+
+const char* FileMetaShared::_InternalParse(const char* ptr, ::_pbi::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    uint32_t tag;
+    ptr = ::_pbi::ReadTag(ptr, &tag);
+    switch (tag >> 3) {
+      // string link = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 10)) {
+          auto str = _internal_mutable_link();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMetaShared.link"));
+        } else
+          goto handle_unusual;
+        continue;
+      // string local_path = 2;
+      case 2:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<uint8_t>(tag) == 18)) {
+          auto str = _internal_mutable_local_path();
+          ptr = ::_pbi::InlineGreedyStringParser(str, ptr, ctx);
+          CHK_(ptr);
+          CHK_(::_pbi::VerifyUTF8(str, "proto.FileMetaShared.local_path"));
+        } else
+          goto handle_unusual;
+        continue;
+      default:
+        goto handle_unusual;
+    }  // switch
+  handle_unusual:
+    if ((tag == 0) || ((tag & 7) == 4)) {
+      CHK_(ptr);
+      ctx->SetLastTag(tag);
+      goto message_done;
+    }
+    ptr = UnknownFieldParse(
+        tag,
+        _internal_metadata_.mutable_unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(),
+        ptr, ctx);
+    CHK_(ptr != nullptr);
+  }  // while
+message_done:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto message_done;
+#undef CHK_
+}
+
+uint8_t* FileMetaShared::_InternalSerialize(
+    uint8_t* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:proto.FileMetaShared)
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // string link = 1;
+  if (!this->_internal_link().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_link().data(), static_cast<int>(this->_internal_link().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.FileMetaShared.link");
+    target = stream->WriteStringMaybeAliased(
+        1, this->_internal_link(), target);
+  }
+
+  // string local_path = 2;
+  if (!this->_internal_local_path().empty()) {
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
+      this->_internal_local_path().data(), static_cast<int>(this->_internal_local_path().length()),
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
+      "proto.FileMetaShared.local_path");
+    target = stream->WriteStringMaybeAliased(
+        2, this->_internal_local_path(), target);
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::_pbi::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(::PROTOBUF_NAMESPACE_ID::UnknownFieldSet::default_instance), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:proto.FileMetaShared)
+  return target;
+}
+
+size_t FileMetaShared::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:proto.FileMetaShared)
+  size_t total_size = 0;
+
+  uint32_t cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // string link = 1;
+  if (!this->_internal_link().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_link());
+  }
+
+  // string local_path = 2;
+  if (!this->_internal_local_path().empty()) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::StringSize(
+        this->_internal_local_path());
+  }
+
+  return MaybeComputeUnknownFieldsSize(total_size, &_impl_._cached_size_);
+}
+
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData FileMetaShared::_class_data_ = {
+    ::PROTOBUF_NAMESPACE_ID::Message::CopyWithSourceCheck,
+    FileMetaShared::MergeImpl
+};
+const ::PROTOBUF_NAMESPACE_ID::Message::ClassData*FileMetaShared::GetClassData() const { return &_class_data_; }
+
+
+void FileMetaShared::MergeImpl(::PROTOBUF_NAMESPACE_ID::Message& to_msg, const ::PROTOBUF_NAMESPACE_ID::Message& from_msg) {
+  auto* const _this = static_cast<FileMetaShared*>(&to_msg);
+  auto& from = static_cast<const FileMetaShared&>(from_msg);
+  // @@protoc_insertion_point(class_specific_merge_from_start:proto.FileMetaShared)
+  GOOGLE_DCHECK_NE(&from, _this);
+  uint32_t cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  if (!from._internal_link().empty()) {
+    _this->_internal_set_link(from._internal_link());
+  }
+  if (!from._internal_local_path().empty()) {
+    _this->_internal_set_local_path(from._internal_local_path());
+  }
+  _this->_internal_metadata_.MergeFrom<::PROTOBUF_NAMESPACE_ID::UnknownFieldSet>(from._internal_metadata_);
+}
+
+void FileMetaShared::CopyFrom(const FileMetaShared& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:proto.FileMetaShared)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool FileMetaShared::IsInitialized() const {
+  return true;
+}
+
+void FileMetaShared::InternalSwap(FileMetaShared* other) {
+  using std::swap;
+  auto* lhs_arena = GetArenaForAllocation();
+  auto* rhs_arena = other->GetArenaForAllocation();
+  _internal_metadata_.InternalSwap(&other->_internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.link_, lhs_arena,
+      &other->_impl_.link_, rhs_arena
+  );
+  ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr::InternalSwap(
+      &_impl_.local_path_, lhs_arena,
+      &other->_impl_.local_path_, rhs_arena
+  );
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata FileMetaShared::GetMetadata() const {
+  return ::_pbi::AssignDescriptors(
+      &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
+      file_level_metadata_file_2eproto[2]);
+}
+
+// ===================================================================
+
 class FileTrunk::_Internal {
  public:
 };
@@ -1128,7 +1406,7 @@ void FileTrunk::InternalSwap(FileTrunk* other) {
 ::PROTOBUF_NAMESPACE_ID::Metadata FileTrunk::GetMetadata() const {
   return ::_pbi::AssignDescriptors(
       &descriptor_table_file_2eproto_getter, &descriptor_table_file_2eproto_once,
-      file_level_metadata_file_2eproto[2]);
+      file_level_metadata_file_2eproto[3]);
 }
 
 // @@protoc_insertion_point(namespace_scope)
@@ -1141,6 +1419,10 @@ Arena::CreateMaybeMessage< ::proto::FileMeta >(Arena* arena) {
 template<> PROTOBUF_NOINLINE ::proto::FileMetaResume*
 Arena::CreateMaybeMessage< ::proto::FileMetaResume >(Arena* arena) {
   return Arena::CreateMessageInternal< ::proto::FileMetaResume >(arena);
+}
+template<> PROTOBUF_NOINLINE ::proto::FileMetaShared*
+Arena::CreateMaybeMessage< ::proto::FileMetaShared >(Arena* arena) {
+  return Arena::CreateMessageInternal< ::proto::FileMetaShared >(arena);
 }
 template<> PROTOBUF_NOINLINE ::proto::FileTrunk*
 Arena::CreateMaybeMessage< ::proto::FileTrunk >(Arena* arena) {

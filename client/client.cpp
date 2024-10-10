@@ -218,9 +218,38 @@ auto download_meta(const std::vector<std::string> &args) -> std::shared_ptr<Pack
     return s_pack;
 }
 
-const auto reqs = std::map<std::string, req_handle_t>{
-    {"regist", regist},      {"login", login},           {"pwd", pwd}, {"ls", ls}, {"mkdir", mk_dir},
-    {"upload", upload_meta}, {"download", download_meta}};
+auto mkshared(const std::vector<std::string> &args) -> std::shared_ptr<Pack> {
+    if (args.size() != 2) {
+        std::cout << "invalid input\n";
+        return nullptr;
+    }
+
+    return create_pack_with_str_msg(Api::MAKE_SHARED, 0, args[1]);
+}
+
+auto down_shared(const std::vector<std::string> &args) -> std::shared_ptr<Pack> {
+    if (args.size() != 3) {
+        std::cout << "invalid input\n";
+        return nullptr;
+    }
+
+    auto s_meta = proto::FileMetaShared{};
+    s_meta.set_link(args[1]);
+    s_meta.set_local_path(args[2]);
+    auto s_pack = create_pack_with_size(Api::SHARED_META, 0, s_meta.ByteSizeLong());
+    s_meta.SerializeToArray(s_pack->data, s_pack->data_size);
+    return s_pack;
+}
+
+const auto reqs = std::map<std::string, req_handle_t>{{"regist", regist},
+                                                      {"login", login},
+                                                      {"pwd", pwd},
+                                                      {"ls", ls},
+                                                      {"mkdir", mk_dir},
+                                                      {"upload", upload_meta},
+                                                      {"download", download_meta},
+                                                      {"mkshared", mkshared},
+                                                      {"downshared", down_shared}};
 
 auto slove_input(const std::string &input) -> std::shared_ptr<Pack> {
     if (input.empty()) {
@@ -289,9 +318,10 @@ auto recv_ls(std::shared_ptr<Pack> r_pack) -> void {
         return;
     }
 
-    std::cout << "type\tpath\tsize\n";
+    std::cout << "type\tpath\tsize\tshared\n";
     for (const auto &entry : entrys.entrys()) {
-        std::cout << std::format("{} {} {}\n", entry.is_dir() ? "dir" : "file", entry.path(), entry.size());
+        std::cout << std::format("{} {} {} {}\n", entry.is_dir() ? "dir" : "file", entry.path(), entry.size(),
+                                 entry.shared_link());
     }
 }
 
@@ -507,8 +537,34 @@ auto recv_resume_trans(std::shared_ptr<Pack> r_pack) -> void {
     auto s_pack = create_pack_with_size(Api::DOWNLOAD_META, 0, s_meta.ByteSizeLong());
     s_meta.SerializeToArray(s_pack->data, s_pack->data_size);
     asio::write(*sock, asio::const_buffer(s_pack.get(), sizeof(Pack) + s_pack->data_size));
+}
 
-    // auto blob = std::make_shared<FileBlob>(r_meta.local_path())
+auto recv_mkshared(std::shared_ptr<Pack> r_pack) -> void {
+    if (r_pack->state == 0) {
+        std::cout << "make shared failed\n";
+        return;
+    }
+    std::cout << "make shared success\n";
+}
+
+auto recv_sharedmeta(std::shared_ptr<Pack> r_pack) -> void {
+    if (r_pack->state == 0) {
+        std::cout << "downshared failed\n";
+        return;
+    }
+
+    auto r_meta = proto::FileMeta{};
+    if (!r_meta.ParseFromArray(r_pack->data, r_pack->data_size)) {
+        std::cout << "parse failed\n";
+        return;
+    }
+
+    auto fb = std::make_shared<FileBlob>(r_meta.local_path(), r_meta.size(), 0);
+    {
+        auto lock = std::lock_guard{down_mut};
+        down_fbs.emplace(r_meta.id(), fb);
+    }
+    start_download_trunk();
 }
 
 const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist},
@@ -519,7 +575,9 @@ const auto recv_handles = std::map<Api, recv_handle_t>{{Api::REGIST, recv_regist
                                                        {Api::UPLOAD_TRUNK, recv_upload_trunk},
                                                        {Api::DOWNLOAD_META, recv_download_meta},
                                                        {Api::DOWNLOAD_TRUNK, recv_download_trunk},
-                                                       {Api::RESUME_TRANS, recv_resume_trans}};
+                                                       {Api::RESUME_TRANS, recv_resume_trans},
+                                                       {Api::MAKE_SHARED, recv_mkshared},
+                                                       {Api::SHARED_META, recv_sharedmeta}};
 
 auto slove_recv(std::shared_ptr<asio::ip::tcp::socket> sock) -> void {
     try {
